@@ -3,7 +3,7 @@ import HelloWorld from '@/components/HelloWorld.vue'
 
 describe('HelloWorld.vue', () => {
   it('renders props.msg when passed', () => {
-    const msg = 'Welcome to vuetify 3 Beta'
+    const msg = 'Welcome to Vuetify 3 Beta'
     const wrapper = shallowMount(HelloWorld, {
       props: { msg }
     })
