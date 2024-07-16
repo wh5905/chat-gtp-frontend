@@ -85,7 +85,7 @@ jobs:
           script_stop: true
           script: |
             cd att/vue-frontend
-            cp -r /home/ec2-user/att/actions-frontend/dist/* ./html/
+            cp -r /home/ec2-user/gtp/actions-frontend/dist/* ./html/
 
             docker image prune -f
             docker logout
