@@ -85,9 +85,6 @@ import { defineComponent, ref, onMounted } from 'vue';
 import router from '@/router';
 // import VueJwtDecode from "vue-jwt-decode";
 
-const naverClientId = "1ceqnQISoXzc9gxfyFy0";
-const googleClientId = "425771861493-v58fd732eng4kfa380c9vf2usotv7do3.apps.googleusercontent.com";
-
 export default defineComponent({
   name: 'HomeView',
   setup() {
@@ -96,7 +93,6 @@ export default defineComponent({
     const drawer = ref(true);
     const isBookmarksOpen = ref(false);
     const isHistoryOpen = ref(false);
-    const googleUser = ref({});
 
     const sendMessage = () => {
       if (messageInput.value.trim()) {
@@ -121,60 +117,6 @@ export default defineComponent({
       isHistoryOpen.value = !isHistoryOpen.value;
     };
 
-    const initNaverLogin = () => {
-      const naverLoginButton = document.getElementById('naver_id_login');
-      if (naverLoginButton && window.naver_id_login) {
-        const naverLogin = new window.naver_id_login(
-          naverClientId,
-          "http://localhost:8080/naverlogin"
-        );
-
-        const state = naverLogin.getUniqState();
-        naverLogin.setButton("white", 2, 40);
-        naverLogin.setDomain("http://localhost:8080");
-        naverLogin.setState(state);
-        naverLogin.init_naver_id_login();
-      } else {
-        console.error('Naver SDK is not loaded or button element is missing.');
-      }
-    };
-
-    const googleInit = () => {
-      const googleSignInButton = document.getElementById('google-signin-button');
-      if (googleSignInButton && window.google && window.google.accounts) {
-        window.google.accounts.id.initialize({
-          client_id: googleClientId,
-          callback: googleCallback,
-        });
-
-        window.google.accounts.id.renderButton(
-          googleSignInButton,
-          { theme: 'outline', size: 'large' }
-        );
-      } else {
-        console.error('Google Sign-In SDK is not loaded or button element is missing.');
-      }
-    };
-
-    const googleCallback = (response: any) => {
-      console.log("Google sign-in response:", response);
-      // googleUser.value = VueJwtDecode.decode(response.credential);
-      console.log("Decoded Google User:", googleUser.value);
-    };
-
-    onMounted(() => {
-      const naverScript = document.createElement('script');
-      naverScript.src = 'https://static.nid.naver.com/js/naverLogin_implicit-1.0.3.js';
-      naverScript.onload = initNaverLogin;
-      document.body.appendChild(naverScript);
-
-      const googleScript = document.createElement('script');
-      googleScript.src = 'https://accounts.google.com/gsi/client';
-      googleScript.async = true;
-      googleScript.defer = true;
-      googleScript.onload = googleInit;
-      document.body.appendChild(googleScript);
-    });
 
     return {
       messageInput,
@@ -187,7 +129,6 @@ export default defineComponent({
       isHistoryOpen,
       toggleBookmarks,
       toggleHistory,
-      googleUser,
     };
   },
 });
