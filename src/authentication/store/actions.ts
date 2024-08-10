@@ -95,14 +95,13 @@ const actions: AuthenticationActions = {
 
             console.log('res:', res.data.isSuccess)
             if (res.data.isSuccess === true) {
-                context.commit('REQUEST_IS_AUTHENTICATED_TO_DJANGO', false)
+                context.commit(REQUEST_IS_AUTHENTICATED_TO_DJANGO, false)
             }
         } catch (error) {
             console.error('requestPostToFastapi() 중 에러 발생:', error)
             throw error
         }
         localStorage.removeItem("userToken")
-        localStorage.removeItem("isAdmin")
     }
 };
 

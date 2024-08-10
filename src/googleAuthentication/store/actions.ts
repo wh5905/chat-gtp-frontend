@@ -12,6 +12,14 @@ export type GoogleAuthenticationActions = {
         context: ActionContext<GoogleAuthenticationState, any>): Promise<any>
     requestUserInfoToDjango(
         context: ActionContext<GoogleAuthenticationState, any>): Promise<any>
+    requestAddRedisAccessTokenToDjango(
+            { commit, state }: ActionContext<GoogleAuthenticationState, any>,
+            { email, accessToken }: { email: string, accessToken: string }
+        ): Promise<any>
+    requestLogoutToDjango(
+            context: ActionContext<GoogleAuthenticationState, any>,
+            userToken: string
+        ): Promise<void>
 }
 
 const actions: GoogleAuthenticationActions = {
@@ -72,6 +80,50 @@ const actions: GoogleAuthenticationActions = {
             throw error;
         }
     },
+    async requestAddRedisAccessTokenToDjango(
+        { commit, state }: ActionContext<GoogleAuthenticationState, any>,
+        { email, accessToken }: { email: string, accessToken: string }
+    ): Promise<any> {
+        try {
+            const response: AxiosResponse<any> = await axiosInst.djangoAxiosInst.post(
+                '/google_oauth/redis-access-token/', {
+                    email: email,
+                    accessToken: accessToken
+                });
+
+            console.log('userToken:', response.data.userToken)
+
+            localStorage.removeItem("accessToken")
+            localStorage.setItem("userToken", response.data.userToken)
+            commit(REQUEST_IS_GOOGLE_AUTHENTICATED_TO_DJANGO, true);
+            return response.data;
+        } catch (error) {
+            console.error('Error adding redis access token:', error);
+            throw error;
+        }
+    },
+    async requestLogoutToDjango(
+        context: ActionContext<GoogleAuthenticationState, any>,
+        userToken: string
+    ): Promise<void> {
+        try {
+            const userToken = localStorage.getItem("userToken")
+
+            const res = 
+                await axiosInst.djangoAxiosInst.post('/google_oauth/logout', {
+                    userToken: userToken
+                })
+
+            console.log('res:', res.data.isSuccess)
+            if (res.data.isSuccess === true) {
+                context.commit(REQUEST_IS_GOOGLE_AUTHENTICATED_TO_DJANGO, false)
+            }
+        } catch (error) {
+            console.error('requestPostToFastapi() 중 에러 발생:', error)
+            throw error
+        }
+        localStorage.removeItem("userToken")
+    }
 };
 
 export default actions;
