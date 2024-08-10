@@ -1,13 +1,17 @@
 import { ActionContext } from "vuex"
-import { AuthenticationState } from "./states"
+import { GoogleAuthenticationState } from "./states"
 import { AxiosResponse } from "axios"
 import axiosInst from "@/utility/axiosInstance"
 import {REQUEST_IS_GOOGLE_AUTHENTICATED_TO_DJANGO} from "./mutation-types"
 export type GoogleAuthenticationActions = {
     requestGoogleOauthRedirectionToDjango(): Promise<void>
     requestAccessTokenToDjangoRedirection(
-        context: ActionContext<AuthenticationState, any>, 
+        context: ActionContext<GoogleAuthenticationState, any>, 
         payload: { code: string }): Promise<void>
+    requestUserEmailToDjango(
+        context: ActionContext<GoogleAuthenticationState, any>): Promise<any>
+    requestUserInfoToDjango(
+        context: ActionContext<GoogleAuthenticationState, any>): Promise<any>
 }
 
 const actions: GoogleAuthenticationActions = {
@@ -17,8 +21,8 @@ const actions: GoogleAuthenticationActions = {
         })
     },
     async requestAccessTokenToDjangoRedirection(
-                context: ActionContext<AuthenticationState, any>, 
-                payload: { code: string }): Promise<void> {
+        context: ActionContext<GoogleAuthenticationState, any>, 
+        payload: { code: string }): Promise<void> {
 
         try {
             console.log('requestAccessTokenToDjangoRedirection()')
@@ -26,10 +30,46 @@ const actions: GoogleAuthenticationActions = {
 
             const response = await axiosInst.djangoAxiosInst.post(
                 '/google_oauth/google/access-token', { code })
-            localStorage.setItem("accessToken", response.data.accessToken.access_token)
+            localStorage.setItem("googleAccessToken", response.data.accessToken.access_token)
+            } catch (error) {
+                console.log('Access Token 요청 중 문제 발생:', error)
+                throw error
+                }
+            },
+    async requestUserEmailToDjango(
+        context: ActionContext<GoogleAuthenticationState, any>): Promise<any> {
+    
+        try {
+            const googleAccessToken = localStorage.getItem("googleAccessToken");
+            const userInfoResponse: AxiosResponse<any> = 
+                await axiosInst.djangoAxiosInst.post(
+                    '/google_oauth/google/user_info_email', 
+                    { access_token: googleAccessToken });
+
+            const userEmail = userInfoResponse.data.user_info_email
+            return userEmail
+
         } catch (error) {
-            console.log('Access Token 요청 중 문제 발생:', error)
-            throw error
+            alert('사용자 이메일 가져오기 실패!')
+            throw error;
+        }
+    },
+    async requestUserInfoToDjango(
+        context: ActionContext<GoogleAuthenticationState, any>): Promise<any> {
+    
+        try {
+            const googleAccessToken = localStorage.getItem("googleAccessToken");
+            const userInfoResponse: AxiosResponse<any> = 
+                await axiosInst.djangoAxiosInst.post(
+                    '/google_oauth/google/user_info', 
+                    { access_token: googleAccessToken });
+
+            const userInfo = userInfoResponse.data.user_info
+            return userInfo
+
+        } catch (error) {
+            alert('사용자 정보 가져오기 실패!')
+            throw error;
         }
     },
 };

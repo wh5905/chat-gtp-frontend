@@ -2,7 +2,8 @@ import googleRedirection from "@/googleAuthetication/google/GoogleRedirection.vu
 
 const GoogleAuthenticationRoutes = [
     {
-        path: '/google_auth/google-access-token',
+        path: '/google_oauth/google-access-token',
+        path: '/google_oauth/access-token',
         name: 'GoogleRedirection',
         component: googleRedirection
     },

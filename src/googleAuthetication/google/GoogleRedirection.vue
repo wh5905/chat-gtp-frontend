@@ -1,15 +1,13 @@
 <template>
     <div></div>
-</template>
-
-<script>
-import router from '@/router';
-import { mapActions, mapState } from 'vuex'
-
-const googleauthenticationModule = 'googleauthenticationModule'
-const accountModule = 'accountModule'
-
-export default {
+  </template>
+  
+  <script>
+  import { mapActions } from 'vuex'
+  
+  const googleAuthenticationModule = 'GoogleAuthenticationModule'
+  
+  export default {
     data () {
         return{
             email:'',
@@ -19,22 +17,29 @@ export default {
         }
     },
     methods: {
-        ...mapActions(googleauthenticationModule, [
-            'requestAccessTokenToDjangoRedirection',
-            'requestUserInfoToDjango',
-        ]),
-        async setRedirectData () {
-            const code = this.$route.query.code
-            await this.requestAccessTokenToDjangoRedirection({ code })
+      ...mapActions(googleAuthenticationModule, [
+        'requestAccessTokenToDjangoRedirection',
+        'requestUserEmailToDjango',
+        'requestUserInfoToDjango',
+      ]),
+  
+      async setRedirectData () {
+          const code = this.$route.query.code
+          await this.requestAccessTokenToDjangoRedirection({ code })
+          const googleAccessToken = localStorage.getItem("googleAccessToken")
+          const userEmail = await this.requestUserEmailToDjango()
+          const userInfo = await this.requestUserInfoToDjango()
+          this.email = userEmail.email
+          this.nickname =userInfo.name
+          this.password = Math.random().toString(36).slice(-8)
+          this.logintype = "GOOGLE"
+          console.log(userEmail.email)
+          console.log(userInfo.name)
 
-            const userInfo = await this.requestUserInfoToDjango()
-            const email = userInfo.email
-            this.password = Math.random().toString(36).slice(-8)
-            this.logintype = "Google"
-        }
+      }
     },
     async created () {
         await this.setRedirectData()
     }
-}
-</script>
+  }
+  </script>
