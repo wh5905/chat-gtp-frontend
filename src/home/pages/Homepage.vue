@@ -45,11 +45,11 @@
     <v-app-bar app flat color="white">
       <v-app-bar-nav-icon @click="toggleDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>ChatGPT Style</v-toolbar-title>
-      <v-btn v-if="!isKakaoAuthenticated && !isLoggedIn && !isGoogleAuthenticated" text @click="signIn" class="btn-text">
+      <v-btn v-if="!isKakaoAuthenticated && !isLoggedIn && !isGoogleAuthenticated && !isNaverAuthenticated" text @click="signIn" class="btn-text">
         <v-icon right>mdi-login</v-icon>
         <span>LogIn</span>
       </v-btn>
-      <v-btn v-if="isKakaoAuthenticated || isLoggedIn || isGoogleAuthenticated" text @click="signOut" class="btn-text">
+      <v-btn v-if="isKakaoAuthenticated || isLoggedIn || isGoogleAuthenticated || isNaverAuthenticated" text @click="signOut" class="btn-text">
         <v-icon right>mdi-logout</v-icon>
         <span>LogOut</span>
       </v-btn>
@@ -115,6 +115,7 @@ export default defineComponent({
     const isKakaoAuthenticated = computed(() => store.state.authenticationModule.isKakaoAuthenticated);
     const isLoggedIn = computed(() => store.state.accountModule.isLoggedIn);
     const isGoogleAuthenticated = computed(() => store.state.GoogleAuthenticationModule.isGoogleAuthenticated);
+    const isNaverAuthenticated = computed(() => store.state.NaverAuthenticationModule.isNaverAuthenticated);
     const signIn = () => {
       router.push('/account/login');
     };
@@ -128,6 +129,9 @@ export default defineComponent({
       }
       if (isGoogleAuthenticated.value){
         await store.dispatch('GoogleAuthenticationModule/requestLogoutToDjango');
+      }
+      if (isNaverAuthenticated.value){
+        await store.dispatch('NaverAuthenticationModule/requestLogoutToDjango');
       }
       router.push('/');
     };
@@ -145,6 +149,7 @@ export default defineComponent({
       isKakaoAuthenticated,
       isLoggedIn,
       isGoogleAuthenticated,
+      isNaverAuthenticated,
       signIn,
       signOut
     };

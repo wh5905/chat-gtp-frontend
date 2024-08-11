@@ -1,4 +1,4 @@
-import googleRedirection from "@/googleAuthetication/google/GoogleRedirection.vue"
+import googleRedirection from "@/googleAuthentication/google/GoogleRedirection.vue"
 
 const GoogleAuthenticationRoutes = [
     {

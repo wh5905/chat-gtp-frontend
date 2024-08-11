@@ -51,7 +51,7 @@
                     class="mx-auto icons"
                     height="40"
                     style="margin-top: 30px;"
-                    :src="require('@/assets/images/fixed/kakao_login.png')"
+                    :src="require('@/assets/images/fixed/kakao_login_large_narrow.png')"
                     aspect-ratio="1"
                     @click="goToKakaoLogin"
                   />
@@ -62,6 +62,14 @@
                     :src="require('@/assets/images/fixed/google_login.png')"
                     aspect-ratio="1"
                     @click="goToGoogleLogin"
+                  />
+                  <v-img
+                    class="mx-auto icons"
+                    height="40"
+                    style="margin-top: 30px;"
+                    :src="require('@/assets/images/fixed/btnG_official.png')"
+                    aspect-ratio="1"
+                    @click="goToNaverLogin"
                   />
                 </div>
               </v-col>
@@ -100,10 +108,14 @@
       const goToGoogleLogin = async () => {
         await store.dispatch('GoogleAuthenticationModule/requestGoogleOauthRedirectionToDjango')
       }
+      const goToNaverLogin = async () => {
+        await store.dispatch('NaverAuthenticationModule/requestNaverOauthRedirectionToDjango')
+      }
   
       return {
         goToKakaoLogin,
-        goToGoogleLogin
+        goToGoogleLogin,
+        goToNaverLogin,
       }
     },computed: {
       ...mapState(accountModule, ['isLoggedIn'])
