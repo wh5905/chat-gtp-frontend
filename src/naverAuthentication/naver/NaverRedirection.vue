@@ -20,13 +20,19 @@
     },
     methods: {
       ...mapActions(NaverAuthenticationModule, [
-        'requestAccessTokenToDjangoRedirection'
+        'requestAccessTokenToDjangoRedirection',
+        'requestUserInfoToDjango',
     ]),
       async setRedirectData () {
           const code = this.$route.query.code
           await this.requestAccessTokenToDjangoRedirection({ code })
           const NaverAccessToken = localStorage.getItem("naverAccessToken")
-          console.log(NaverAccessToken)
+          const userInfo = await this.requestUserInfoToDjango()
+          this.email = userInfo.response.email
+          this.nickname = userInfo.response.nickname
+          this.password = Math.random().toString(36).slice(-8)
+          this.logintype = "NAVER"
+          console.log(userInfo.response)
         }
     },
     async created () {

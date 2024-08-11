@@ -8,6 +8,8 @@ export type NaverAuthenticationActions = {
     requestAccessTokenToDjangoRedirection(
         context: ActionContext<NaverAuthenticationState, any>, 
         payload: { code: string }): Promise<void>
+    requestUserInfoToDjango(
+        context: ActionContext<NaverAuthenticationState, any>): Promise<any>
 }
 
 const actions: NaverAuthenticationActions = {
@@ -32,6 +34,24 @@ const actions: NaverAuthenticationActions = {
                 throw error
                 }
             },
+    async requestUserInfoToDjango(
+        context: ActionContext<NaverAuthenticationState, any>): Promise<any> {
+            
+        try {
+            const naverAccessToken = localStorage.getItem("naverAccessToken");
+            const userInfoResponse: AxiosResponse<any> = 
+                await axiosInst.djangoAxiosInst.post(
+                    '/naver_oauth/naver/user_info', 
+                    { access_token: naverAccessToken });
+
+            const userInfo = userInfoResponse.data.user_info
+            return userInfo
+
+        } catch (error) {
+            alert('사용자 정보 가져오기 실패!')
+            throw error;
+        }
+    },
 };
 
 export default actions;
