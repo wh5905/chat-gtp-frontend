@@ -10,6 +10,14 @@ export type NaverAuthenticationActions = {
         payload: { code: string }): Promise<void>
     requestUserInfoToDjango(
         context: ActionContext<NaverAuthenticationState, any>): Promise<any>
+    requestAddRedisAccessTokenToDjango(
+        { commit, state }: ActionContext<NaverAuthenticationState, any>,
+        { email, accessToken }: { email: string, accessToken: string }
+    ): Promise<any>
+    requestLogoutToDjango(
+        context: ActionContext<NaverAuthenticationState, any>,
+        userToken: string
+    ): Promise<void>
 }
 
 const actions: NaverAuthenticationActions = {
@@ -52,6 +60,50 @@ const actions: NaverAuthenticationActions = {
             throw error;
         }
     },
+    async requestAddRedisAccessTokenToDjango(
+        { commit, state }: ActionContext<NaverAuthenticationState, any>,
+        { email, accessToken }: { email: string, accessToken: string }
+    ): Promise<any> {
+        try {
+            const response: AxiosResponse<any> = await axiosInst.djangoAxiosInst.post(
+                '/naver_oauth/redis-access-token/', {
+                    email: email,
+                    accessToken: accessToken
+                });
+
+            console.log('userToken:', response.data.userToken)
+
+            localStorage.removeItem("accessToken")
+            localStorage.setItem("userToken", response.data.userToken)
+            commit(REQUEST_IS_NAVER_AUTHENTICATED_TO_DJANGO, true);
+            return response.data;
+        } catch (error) {
+            console.error('Error adding redis access token:', error);
+            throw error;
+        }
+    },
+    async requestLogoutToDjango(
+        context: ActionContext<NaverAuthenticationState, any>,
+        userToken: string
+    ): Promise<void> {
+        try {
+            const userToken = localStorage.getItem("userToken")
+
+            const res = 
+                await axiosInst.djangoAxiosInst.post('/naver_oauth/logout', {
+                    userToken: userToken
+                })
+
+            console.log('res:', res.data.isSuccess)
+            if (res.data.isSuccess === true) {
+                context.commit(REQUEST_IS_NAVER_AUTHENTICATED_TO_DJANGO, false)
+            }
+        } catch (error) {
+            console.error('requestPostToFastapi() 중 에러 발생:', error)
+            throw error
+        }
+        localStorage.removeItem("userToken")
+    }
 };
 
 export default actions;
