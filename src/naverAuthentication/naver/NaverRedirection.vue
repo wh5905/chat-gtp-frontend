@@ -7,7 +7,7 @@
   import { mapActions } from 'vuex'
   
   const NaverAuthenticationModule = 'NaverAuthenticationModule'
-  
+  const accountModule = "accountModule"
 
   export default {
     data () {
@@ -22,6 +22,11 @@
       ...mapActions(NaverAuthenticationModule, [
         'requestAccessTokenToDjangoRedirection',
         'requestUserInfoToDjango',
+        'requestAddRedisAccessTokenToDjango',
+    ]),
+    ...mapActions(accountModule, [
+            'requestEmailDuplicationCheckToDjango',
+            'requestCreateNewAccountToDjango'
     ]),
       async setRedirectData () {
           const code = this.$route.query.code
@@ -32,7 +37,31 @@
           this.nickname = userInfo.response.nickname
           this.password = Math.random().toString(36).slice(-8)
           this.logintype = "NAVER"
-          console.log(userInfo.response)
+          
+          const isEmailDuplication = 
+                await this.requestEmailDuplicationCheckToDjango({ "email": this.email })
+            if (isEmailDuplication === true) {
+
+                const naverAccessToken = localStorage.getItem("naverAccessToken");
+                if (naverAccessToken) {
+                    await this.requestAddRedisAccessTokenToDjango({ email:this.email, naverAccessToken });
+                    
+                } else {
+                    console.error('AccessToken is missing');
+                }
+                this.$router.push('/')
+            }else {
+                const accountInfo = {
+                    email: this.email,
+                    nickname: this.nickname,
+                    password: this.password,
+                    logintype: this.logintype
+                }
+                console.log('전송한 데이터:', accountInfo)
+                await this.requestCreateNewAccountToDjango(accountInfo)
+
+                router.push('/')
+            } 
         }
     },
     async created () {
