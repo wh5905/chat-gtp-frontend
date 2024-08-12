@@ -73,8 +73,8 @@ const actions: NaverAuthenticationActions = {
 
             console.log('userToken:', response.data.userToken)
 
-            localStorage.removeItem("accessToken")
-            localStorage.setItem("userToken", response.data.userToken)
+            localStorage.removeItem("naverAccessToken")
+            localStorage.setItem("naverUserToken", response.data.userToken)
             commit(REQUEST_IS_NAVER_AUTHENTICATED_TO_DJANGO, true);
             return response.data;
         } catch (error) {
@@ -87,11 +87,11 @@ const actions: NaverAuthenticationActions = {
         userToken: string
     ): Promise<void> {
         try {
-            const userToken = localStorage.getItem("userToken")
+            const naverUserToken = localStorage.getItem("naverUserToken")
 
             const res = 
                 await axiosInst.djangoAxiosInst.post('/naver_oauth/logout', {
-                    userToken: userToken
+                    userToken: naverUserToken
                 })
 
             console.log('res:', res.data.isSuccess)
@@ -102,7 +102,7 @@ const actions: NaverAuthenticationActions = {
             console.error('requestPostToFastapi() 중 에러 발생:', error)
             throw error
         }
-        localStorage.removeItem("userToken")
+        localStorage.removeItem("naverUserToken")
     }
 };
 

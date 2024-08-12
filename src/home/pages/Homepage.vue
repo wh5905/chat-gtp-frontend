@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <v-navigation-drawer v-model="drawer" app permanent>
+    <v-navigation-drawer v-model="drawer" class="navi" app permanent>
       <v-container fluid class="pa-0" style="overflow: auto;">
         <v-list>
           <v-list-item @click="toggleBookmarks" class="clickable-item">
@@ -42,7 +42,7 @@
       </v-container>
     </v-navigation-drawer>
 
-    <v-app-bar app flat color="white">
+    <v-app-bar app flat color="#212121">
       <v-app-bar-nav-icon @click="toggleDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>ChatGPT Style</v-toolbar-title>
       <v-btn v-if="isNotAuthenticated" text @click="signIn" class="btn-text">
@@ -89,6 +89,7 @@
           <v-card-text>메시지를 보내려면 먼저 로그인해야 합니다.</v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
+            <v-btn color="secondary" text @click="signIn">로그인</v-btn>
             <v-btn color="primary" text @click="closeDialog">확인</v-btn>
           </v-card-actions>
         </v-card>
@@ -98,7 +99,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, onMounted,computed } from 'vue';
 import router from '@/router';
 import { useStore } from 'vuex';
 
@@ -112,6 +113,29 @@ export default defineComponent({
     const isBookmarksOpen = ref(false);
     const isHistoryOpen = ref(false);
     const showDialog = ref(false); // 팝업 창을 제어하는 ref
+
+    const isKakaoAuthenticated = ref(false);
+    const isLoggedIn = ref(false);
+    const isGoogleAuthenticated = ref(false);
+    const isNaverAuthenticated = ref(false);
+
+    const isAuthenticated = computed(() => {
+      return (
+        isKakaoAuthenticated.value || 
+        isLoggedIn.value || 
+        isGoogleAuthenticated.value || 
+        isNaverAuthenticated.value
+      );
+    });
+
+    const isNotAuthenticated = computed(() => {
+      return (
+        !isKakaoAuthenticated.value && 
+        !isLoggedIn.value && 
+        !isGoogleAuthenticated.value && 
+        !isNaverAuthenticated.value
+      );
+    });
 
     const sendMessage = () => {
       if (isAuthenticated.value) {
@@ -144,32 +168,6 @@ export default defineComponent({
       isHistoryOpen.value = !isHistoryOpen.value;
     };
 
-    // 각 인증 상태를 개별적으로 가져오기
-    const isKakaoAuthenticated = computed(() => store.state.authenticationModule.isKakaoAuthenticated);
-    const isLoggedIn = computed(() => store.state.accountModule.isLoggedIn);
-    const isGoogleAuthenticated = computed(() => store.state.GoogleAuthenticationModule.isGoogleAuthenticated);
-    const isNaverAuthenticated = computed(() => store.state.NaverAuthenticationModule.isNaverAuthenticated);
-
-    // 모든 인증 상태를 묶어서 확인하는 computed 속성
-    const isAuthenticated = computed(() => {
-      return (
-        isKakaoAuthenticated.value || 
-        isLoggedIn.value || 
-        isGoogleAuthenticated.value || 
-        isNaverAuthenticated.value
-      );
-    });
-
-    // 모든 인증 상태가 false일 때만 true를 반환하는 computed 속성
-    const isNotAuthenticated = computed(() => {
-      return (
-        !isKakaoAuthenticated.value && 
-        !isLoggedIn.value && 
-        !isGoogleAuthenticated.value && 
-        !isNaverAuthenticated.value
-      );
-    });
-
     const signIn = () => {
       router.push('/account/login');
     };
@@ -177,18 +175,49 @@ export default defineComponent({
     const signOut = async () => {
       if (isLoggedIn.value) {
         await store.commit('accountModule/REQUEST_IS_ACCOUNT_TO_DJANGO', false);
+        localStorage.removeItem('generalLogin')
+        isLoggedIn.value=false
       }
       if (isKakaoAuthenticated.value) {
         await store.dispatch('authenticationModule/requestLogoutToDjango');
+        localStorage.removeItem('userToken')
+        isKakaoAuthenticated.value=false
       }
       if (isGoogleAuthenticated.value){
         await store.dispatch('GoogleAuthenticationModule/requestLogoutToDjango');
+        localStorage.removeItem('googleUserToken')
+        isGoogleAuthenticated.value=false
       }
       if (isNaverAuthenticated.value){
         await store.dispatch('NaverAuthenticationModule/requestLogoutToDjango');
+        localStorage.removeItem('naverUserToken')
+        isNaverAuthenticated.value=false
       }
       router.push('/');
     };
+
+    onMounted(async () => {
+      const generalLogin = localStorage.getItem('generalLogin')
+      if(generalLogin){
+        console.log("You already has a generalLogin!");
+        isLoggedIn.value=true
+      }
+      const userToken = localStorage.getItem('userToken')
+      if(userToken){
+        console.log("You already has a userToken!");
+        isKakaoAuthenticated.value=true
+      }
+      const googleUserToken = localStorage.getItem('googleUserToken')
+      if(googleUserToken){
+        console.log("You already has a googleUserToken!");
+        isGoogleAuthenticated.value=true
+      }
+      const naverUserToken = localStorage.getItem('naverUserToken')
+      if(naverUserToken){
+        console.log("You already has a naverUserToken!");
+        isNaverAuthenticated.value=true
+      }
+    });
 
     return {
       messageInput,
@@ -212,27 +241,32 @@ export default defineComponent({
 </script>
 
 <style scoped>
+.navi{
+  background-color: #212121;
+  color: #ffffff;
+}
 .main-container {
   height: calc(100vh - 64px);
   padding: 0;
 }
 
 .chat-container {
-  background-color: #ffffff;
+  background-color: #212121;
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
 .chat-box {
-  flex: 1;
-  background-color: rgb(222, 236, 255);
+  background-color: #212121;
   border-radius: 8px;
   padding: 20px;
+  height:700px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  max-height: 400px;
+  max-height: 700px;
   overflow-y: auto;
-  margin-bottom: 10px;
+  margin-left: 10%;
+  margin-right: 10%;
 }
 
 .message {
@@ -244,24 +278,30 @@ export default defineComponent({
 }
 
 .user-message {
-  background-color: #cfe9ff;
+  background-color: #212121;
   margin-left: auto;
   text-align: right;
+  color:#ffffff
 }
 
 .bot-message {
-  background-color: #f0f0f0;
+  background-color: #212121;
   margin-right: auto;
   text-align: left;
+  color:#ffffff
 }
 
 .chat-input-card {
-  border-top: 85px solid #ffffff;
+  background-color: #212121;
+  color: #ffffff;
+  margin-left: 10%;
+  margin-right: 10%;
 }
 
 .input-container {
   display: flex;
   align-items: center;
+  background-color: #2F2F2F;
 }
 
 .message-input {

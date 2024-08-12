@@ -144,6 +144,7 @@
                     this.isPasswordvalid = true
                     this.$store.commit(`${accountModule}/REQUEST_IS_ACCOUNT_TO_DJANGO`, true);
                     console.log(this.isLoggedIn)
+                    localStorage.setItem('generalLogin',true)
                     router.push('/')
                 } else {
                     this.isEmailValid  = false
