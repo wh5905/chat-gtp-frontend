@@ -45,14 +45,15 @@
     <v-app-bar app flat color="white">
       <v-app-bar-nav-icon @click="toggleDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>ChatGPT Style</v-toolbar-title>
-      <v-btn v-if="!isKakaoAuthenticated && !isLoggedIn && !isGoogleAuthenticated && !isNaverAuthenticated" text @click="signIn" class="btn-text">
+      <v-btn v-if="isNotAuthenticated" text @click="signIn" class="btn-text">
         <v-icon right>mdi-login</v-icon>
-        <span>LogIn</span>
+          <span>LogIn</span>
       </v-btn>
-      <v-btn v-if="isKakaoAuthenticated || isLoggedIn || isGoogleAuthenticated || isNaverAuthenticated" text @click="signOut" class="btn-text">
-        <v-icon right>mdi-logout</v-icon>
-        <span>LogOut</span>
-      </v-btn>
+        <v-btn v-if="isAuthenticated" text @click="signOut" class="btn-text">
+          <v-icon right>mdi-logout</v-icon>
+            <span>LogOut</span>
+        </v-btn>
+
     </v-app-bar>
 
     <v-main>
@@ -112,10 +113,32 @@ export default defineComponent({
       isHistoryOpen.value = !isHistoryOpen.value;
     };
 
+    // 각 인증 상태를 개별적으로 가져오기
     const isKakaoAuthenticated = computed(() => store.state.authenticationModule.isKakaoAuthenticated);
     const isLoggedIn = computed(() => store.state.accountModule.isLoggedIn);
     const isGoogleAuthenticated = computed(() => store.state.GoogleAuthenticationModule.isGoogleAuthenticated);
     const isNaverAuthenticated = computed(() => store.state.NaverAuthenticationModule.isNaverAuthenticated);
+
+    // 모든 인증 상태를 묶어서 확인하는 computed 속성
+    const isAuthenticated = computed(() => {
+      return (
+        isKakaoAuthenticated.value || 
+        isLoggedIn.value || 
+        isGoogleAuthenticated.value || 
+        isNaverAuthenticated.value
+      );
+    });
+
+    // 모든 인증 상태가 false일 때만 true를 반환하는 computed 속성
+    const isNotAuthenticated = computed(() => {
+      return (
+        !isKakaoAuthenticated.value && 
+        !isLoggedIn.value && 
+        !isGoogleAuthenticated.value && 
+        !isNaverAuthenticated.value
+      );
+    });
+
     const signIn = () => {
       router.push('/account/login');
     };
@@ -146,10 +169,8 @@ export default defineComponent({
       isHistoryOpen,
       toggleBookmarks,
       toggleHistory,
-      isKakaoAuthenticated,
-      isLoggedIn,
-      isGoogleAuthenticated,
-      isNaverAuthenticated,
+      isAuthenticated,
+      isNotAuthenticated, // 새로 추가된 속성
       signIn,
       signOut
     };
