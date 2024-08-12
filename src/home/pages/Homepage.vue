@@ -47,28 +47,36 @@
       <v-toolbar-title>ChatGPT Style</v-toolbar-title>
       <v-btn v-if="isNotAuthenticated" text @click="signIn" class="btn-text">
         <v-icon right>mdi-login</v-icon>
-          <span>LogIn</span>
+        <span>LogIn</span>
       </v-btn>
-        <v-btn v-if="isAuthenticated" text @click="signOut" class="btn-text">
-          <v-icon right>mdi-logout</v-icon>
-            <span>LogOut</span>
-        </v-btn>
-
+      <v-btn v-if="isAuthenticated" text @click="signOut" class="btn-text">
+        <v-icon right>mdi-logout</v-icon>
+        <span>LogOut</span>
+      </v-btn>
     </v-app-bar>
 
     <v-main>
       <v-container class="main-container" fluid>
         <div class="chat-container">
           <div class="chat-box">
-            <div v-for="(message, index) in messages" :key="index" class="message">
-              {{ message }}
+            <div 
+              v-for="(message, index) in messages" 
+              :key="index" 
+              :class="['message', message.isUser ? 'user-message' : 'bot-message']"
+            >
+              {{ message.text }}
             </div>
           </div>
 
           <v-card class="chat-input-card">
             <v-card-text>
               <div class="input-container">
-                <v-text-field v-model="messageInput" label="Type your message" outlined dense @keyup.enter="sendMessage"
+                <v-text-field 
+                  v-model="messageInput" 
+                  label="Type your message" 
+                  outlined 
+                  dense 
+                  @keyup.enter="sendMessage" 
                   class="message-input"></v-text-field>
               </div>
             </v-card-text>
@@ -89,15 +97,23 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const messageInput = ref('');
-    const messages = ref<string[]>([]);
+    const messages = ref<Array<{ text: string; isUser: boolean }>>([]);
     const drawer = ref(true);
     const isBookmarksOpen = ref(false);
     const isHistoryOpen = ref(false);
 
     const sendMessage = () => {
-      if (messageInput.value.trim()) {
-        messages.value.push(messageInput.value);
-        messageInput.value = '';
+      if (isAuthenticated.value) {
+        if (messageInput.value.trim()) {
+          messages.value.push({ text: messageInput.value, isUser: true });
+          messageInput.value = '';
+          // Simulating bot response
+          setTimeout(() => {
+            messages.value.push({ text: 'This is a response from the bot.', isUser: false });
+          }, 1000);
+        }
+      } else {
+        alert('로그인을 해주세요.');
       }
     };
 
@@ -170,7 +186,7 @@ export default defineComponent({
       toggleBookmarks,
       toggleHistory,
       isAuthenticated,
-      isNotAuthenticated, // 새로 추가된 속성
+      isNotAuthenticated,
       signIn,
       signOut
     };
@@ -204,6 +220,22 @@ export default defineComponent({
 
 .message {
   margin-bottom: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  max-width: 60%;
+  word-wrap: break-word;
+}
+
+.user-message {
+  background-color: #cfe9ff;
+  margin-left: auto;
+  text-align: right;
+}
+
+.bot-message {
+  background-color: #f0f0f0;
+  margin-right: auto;
+  text-align: left;
 }
 
 .chat-input-card {
