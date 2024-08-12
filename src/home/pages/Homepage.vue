@@ -83,6 +83,16 @@
           </v-card>
         </div>
       </v-container>
+      <v-dialog v-model="showDialog" max-width="400">
+        <v-card>
+          <v-card-title class="headline">로그인이 필요합니다</v-card-title>
+          <v-card-text>메시지를 보내려면 먼저 로그인해야 합니다.</v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="primary" text @click="closeDialog">확인</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </v-main>
   </v-app>
 </template>
@@ -101,6 +111,7 @@ export default defineComponent({
     const drawer = ref(true);
     const isBookmarksOpen = ref(false);
     const isHistoryOpen = ref(false);
+    const showDialog = ref(false); // 팝업 창을 제어하는 ref
 
     const sendMessage = () => {
       if (isAuthenticated.value) {
@@ -113,8 +124,12 @@ export default defineComponent({
           }, 1000);
         }
       } else {
-        alert('로그인을 해주세요.');
+        showDialog.value = true; // 로그인 안 된 경우 팝업 창 띄우기
       }
+    };
+
+    const closeDialog = () => {
+      showDialog.value = false;
     };
 
     const toggleDrawer = () => {
@@ -188,7 +203,9 @@ export default defineComponent({
       isAuthenticated,
       isNotAuthenticated,
       signIn,
-      signOut
+      signOut,
+      showDialog,
+      closeDialog,
     };
   }
 });
