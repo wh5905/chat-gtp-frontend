@@ -53,6 +53,10 @@
         <v-icon right>mdi-logout</v-icon>
         <span>LogOut</span>
       </v-btn>
+      <v-btn v-if="isAuthenticated" text class="btn-text">
+        <v-icon right>mdi-logout</v-icon>
+        <span></span>
+      </v-btn>
     </v-app-bar>
 
     <v-main>

@@ -16,10 +16,14 @@ export type AccountActions = {
         context: ActionContext<any, any>,
         accountInfo: { email: string, id:string, password:string,logintype:string}
     ): Promise<void>
-    requestPasswordDuplicationCheckToDjango(
+    requestAccountCheckToDjango(
         context: ActionContext<AccountState, any>,
         payload: any
-    ): Promise<boolean> 
+    ): Promise<boolean>
+    requestNicknameToDjango(
+        context: ActionContext<AccountState,any>,
+        email: string
+    ): Promise<void>
 }
 
 const actions: AccountActions = {
@@ -61,16 +65,16 @@ const actions: AccountActions = {
             }
         })
     },
-    async requestPasswordDuplicationCheckToDjango(
+    async requestAccountCheckToDjango(
         context: ActionContext<AccountState, any>,
         payload: any
     ): Promise<boolean> {
 
-        const { password } = payload
+        const { email,password } = payload
 
         return axiosInst.djangoAxiosInst.post(
-                    '/account/password-duplication-check', 
-                    { password: password }
+                    '/account/account-check', 
+                    { email:email,password: password }
         )
         .then((res) => {
             if (res.data.isDuplicate) {
@@ -91,6 +95,17 @@ const actions: AccountActions = {
             throw error
         }
     },
+    async requestNicknameToDjango(
+        context: ActionContext<AccountState,any>,
+        email: string
+    ): Promise<void>{
+        try{
+            await axiosInst.djangoAxiosInst.post('/account/find-nickname',email)
+    } catch (error){
+        console.error('닉네임 확인 실패:',error)
+        throw error
+        }
+    }
 };
 
 export default actions;
