@@ -123,7 +123,8 @@
     methods: {
       ...mapActions(accountModule, [
             'requestEmailDuplicationCheckToDjango',
-            'requestPasswordDuplicationCheckToDjango'
+            'requestPasswordDuplicationCheckToDjango',
+            'requestAccountCheckToDjango'
         ]),
       goToHome() {
         router.push('/')
@@ -133,13 +134,11 @@
       },
       async checkAccount() {
         try {
-                const isEmailDuplicate = await this.requestEmailDuplicationCheckToDjango({
-                    email: this.email.trim()
+                const isAccontCheck = await this.requestAccountCheckToDjango({
+                  email:this.email,
+                  password:this.password
                 })
-                const isPasswordDuplicate = await this.requestPasswordDuplicationCheckToDjango({
-                    password: this.password.trim()
-                })
-                if (isEmailDuplicate & isPasswordDuplicate) {
+                if (isAccontCheck) {
                     this.isEmailValid = true
                     this.isPasswordvalid = true
                     this.$store.commit(`${accountModule}/REQUEST_IS_ACCOUNT_TO_DJANGO`, true);
@@ -155,10 +154,8 @@
                 this.isEmailValid = false
                 this.isPasswordvalid = false
             }
-        
-      }
-      
-    }
+          }
+        }
   }
   </script>
   
