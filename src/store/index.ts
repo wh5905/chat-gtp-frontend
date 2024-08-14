@@ -3,6 +3,7 @@ import authenticationModule from '@/authentication/store/authenticationModule'
 import boardModule from '@/board/store/boardModule'
 import GoogleAuthenticationModule from "@/googleAuthentication/store/GoogleAuthenticationModule"
 import NaverAuthenticationModule from '@/naverAuthentication/store/NaverAuthenticationModule'
+import StockModule from '@/stock/store/stockModule'
 import { createStore } from 'vuex'
 
 export default createStore({
@@ -20,5 +21,7 @@ export default createStore({
     authenticationModule,
     GoogleAuthenticationModule,
     NaverAuthenticationModule,
+    stock: StockModule,
+
   }
 })
