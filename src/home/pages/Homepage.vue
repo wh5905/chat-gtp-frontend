@@ -3,6 +3,7 @@
     <v-navigation-drawer v-model="drawer" class="navi" app permanent>
       <v-container fluid class="pa-0" style="overflow: auto;">
         <v-list>
+          <!-- 다른 항목들... -->
           <v-list-item @click="toggleBookmarks" class="clickable-item">
             <v-list-item-icon>
               <v-icon>mdi-bookmark</v-icon>
@@ -14,7 +15,12 @@
           </v-list-item>
           <v-expand-transition>
             <v-list v-show="isBookmarksOpen">
-              <span>toggle test01</span>
+              <v-list-item :to="{ name: 'stock_list' }" class="clickable-item">
+                <v-list-item-icon>
+                  <v-icon>mdi-chart-line</v-icon>
+                  <span>주식 목록</span>
+                </v-list-item-icon>
+              </v-list-item>
             </v-list>
           </v-expand-transition>
         </v-list>
@@ -52,10 +58,6 @@
       <v-btn v-if="isAuthenticated" text @click="signOut" class="btn-text">
         <v-icon right>mdi-logout</v-icon>
         <span>LogOut</span>
-      </v-btn>
-      <v-btn v-if="isAuthenticated" text class="btn-text">
-        <v-icon right>mdi-logout</v-icon>
-        <span></span>
       </v-btn>
     </v-app-bar>
 
@@ -103,7 +105,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted,computed } from 'vue';
+import { defineComponent, ref, onMounted, computed } from 'vue';
 import router from '@/router';
 import { useStore } from 'vuex';
 
@@ -179,47 +181,47 @@ export default defineComponent({
     const signOut = async () => {
       if (isLoggedIn.value) {
         await store.commit('accountModule/REQUEST_IS_ACCOUNT_TO_DJANGO', false);
-        localStorage.removeItem('generalLogin')
-        isLoggedIn.value=false
+        localStorage.removeItem('generalLogin');
+        isLoggedIn.value = false;
       }
       if (isKakaoAuthenticated.value) {
         await store.dispatch('authenticationModule/requestLogoutToDjango');
-        localStorage.removeItem('userToken')
-        isKakaoAuthenticated.value=false
+        localStorage.removeItem('userToken');
+        isKakaoAuthenticated.value = false;
       }
-      if (isGoogleAuthenticated.value){
+      if (isGoogleAuthenticated.value) {
         await store.dispatch('GoogleAuthenticationModule/requestLogoutToDjango');
-        localStorage.removeItem('googleUserToken')
-        isGoogleAuthenticated.value=false
+        localStorage.removeItem('googleUserToken');
+        isGoogleAuthenticated.value = false;
       }
-      if (isNaverAuthenticated.value){
+      if (isNaverAuthenticated.value) {
         await store.dispatch('NaverAuthenticationModule/requestLogoutToDjango');
-        localStorage.removeItem('naverUserToken')
-        isNaverAuthenticated.value=false
+        localStorage.removeItem('naverUserToken');
+        isNaverAuthenticated.value = false;
       }
       router.push('/');
     };
 
     onMounted(async () => {
-      const generalLogin = localStorage.getItem('generalLogin')
-      if(generalLogin){
+      const generalLogin = localStorage.getItem('generalLogin');
+      if (generalLogin) {
         console.log("You already has a generalLogin!");
-        isLoggedIn.value=true
+        isLoggedIn.value = true;
       }
-      const userToken = localStorage.getItem('userToken')
-      if(userToken){
+      const userToken = localStorage.getItem('userToken');
+      if (userToken) {
         console.log("You already has a userToken!");
-        isKakaoAuthenticated.value=true
+        isKakaoAuthenticated.value = true;
       }
-      const googleUserToken = localStorage.getItem('googleUserToken')
-      if(googleUserToken){
+      const googleUserToken = localStorage.getItem('googleUserToken');
+      if (googleUserToken) {
         console.log("You already has a googleUserToken!");
-        isGoogleAuthenticated.value=true
+        isGoogleAuthenticated.value = true;
       }
-      const naverUserToken = localStorage.getItem('naverUserToken')
-      if(naverUserToken){
+      const naverUserToken = localStorage.getItem('naverUserToken');
+      if (naverUserToken) {
         console.log("You already has a naverUserToken!");
-        isNaverAuthenticated.value=true
+        isNaverAuthenticated.value = true;
       }
     });
 
@@ -245,10 +247,11 @@ export default defineComponent({
 </script>
 
 <style scoped>
-.navi{
+.navi {
   background-color: #212121;
   color: #ffffff;
 }
+
 .main-container {
   height: calc(100vh - 64px);
   padding: 0;
@@ -265,7 +268,7 @@ export default defineComponent({
   background-color: #212121;
   border-radius: 8px;
   padding: 20px;
-  height:700px;
+  height: 700px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   max-height: 700px;
   overflow-y: auto;
@@ -285,14 +288,14 @@ export default defineComponent({
   background-color: #212121;
   margin-left: auto;
   text-align: right;
-  color:#ffffff
+  color: #ffffff;
 }
 
 .bot-message {
   background-color: #212121;
   margin-right: auto;
   text-align: left;
-  color:#ffffff
+  color: #ffffff;
 }
 
 .chat-input-card {
