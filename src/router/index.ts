@@ -5,6 +5,7 @@ import AccountRoutes from '@/account/router/AccountRoutes'
 import AuthenticationRoutes from '@/authentication/router/AuthenticationRoutes'
 import GoogleAuthenticationRoutes from '@/googleAuthentication/router/GoogleAuthenticationRoutes'
 import NaverAuthenticationRoutes from '@/naverAuthentication/router/NaverAuthenticationRoutes'
+import StockRoutes from '@/stock/router/StockRoutes'
 
 const routes: Array<RouteRecordRaw> = [
   ...BoardRoutes,
@@ -13,6 +14,7 @@ const routes: Array<RouteRecordRaw> = [
   ...AuthenticationRoutes,
   ...GoogleAuthenticationRoutes,
   ...NaverAuthenticationRoutes,
+  ...StockRoutes,
 ]  
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
