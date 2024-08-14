@@ -176,8 +176,8 @@ export default {
 
                 await this.requestCreateNewAccountToDjango(accountInfo)
                 console.log('전송한 데이터:', accountInfo)
-                alert('회원가입이 되었습니다.')
-                router.push('/')
+                alert('회원가입이 되었습니다.\n 로그인을 진행해주세요')
+                router.push('/account/register')
             }
         },
     },

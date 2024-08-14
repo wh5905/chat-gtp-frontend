@@ -1,84 +1,86 @@
 <template>
-    <div class="background">
-      <v-app-bar app dense>
-        <v-toolbar-title>로그인</v-toolbar-title>
-        <v-spacer></v-spacer>
-        <v-btn icon @click="goToHome">
-          <v-icon>mdi-home</v-icon>
-        </v-btn>
-      </v-app-bar>
-      
-      <div class="stars"></div>
-      <v-container class="overlay">
-        <v-row class="justify-center">
-          <v-col class="white-background rounded-box" cols="12" md="6">
-            <v-card-text>
-              <v-form ref="form" v-model="formValid" lazy-validation>
-                <v-text-field
-                  v-model="email"
-                  label="Email"
-                  required
-                  :rules="emailRules"
-                  class="input-field"
-                  outlined
-                  :error-messages="emailErrorMessages"
-                />
-                <v-text-field
-                  v-model="password"
-                  label="Password"
-                  required
-                  outlined
-                  :rules="passwordRules"
-                  :error-messages="passwordErrorMessages"
-                  class="input-field"
-                />
-                <v-row align="center" justify="center">
-                  <v-btn class="loginButton" color="primary" @click="checkAccount">
-                    로그인
-                  </v-btn>
-                  <v-btn class="register" color="secondary" @click="accountRegister">
-                    회원가입
-                  </v-btn>
+  <div class="background">
+    <v-app-bar app dense>
+      <v-toolbar-title>로그인</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon @click="goToHome">
+        <v-icon>mdi-home</v-icon>
+      </v-btn>
+    </v-app-bar>
+    
+    <div class="stars"></div>
+    <v-container class="overlay">
+      <v-row class="justify-center">
+        <v-col class="white-background rounded-box" cols="12" md="6">
+          <v-card-text>
+            <v-form ref="form" v-model="formValid" lazy-validation>
+              <v-text-field
+                v-model="email"
+                label="Email"
+                required
+                :rules="emailRules"
+                class="input-field"
+                outlined
+                :error-messages="emailErrorMessages"
+              />
+              <v-text-field
+                v-model="password"
+                label="Password"
+                required
+                outlined
+                :rules="passwordRules"
+                :error-messages="passwordErrorMessages"
+                class="input-field"
+              />
+              <v-row align="center" justify="center">
+                <v-btn class="loginButton" color="primary" @click="checkAccount">
+                  로그인
+                </v-btn>
+                <v-btn class="register" color="secondary" @click="accountRegister">
+                  회원가입
+                </v-btn>
+              </v-row>
+            </v-form>
+          </v-card-text>
+          <v-row class="justify-center content-center">
+            <v-col cols="12">
+              <div class="text-center sub-text-2">
+                <p>소셜 로그인을 원하신다면</p>
+                <p>아래 버튼을 클릭해주세요</p>
+                <v-row class="justify-center align-center">
+                  <v-col cols="auto" class="icon-col">
+                    <v-img
+                      height="40"
+                      :src="require('@/assets/images/fixed/image.png')"
+                      aspect-ratio="1"
+                      @click="goToKakaoLogin"
+                    />
+                  </v-col>
+                  <v-col cols="auto" class="icon-col">
+                    <v-img
+                      height="40"
+                      :src="require('@/assets/images/fixed/google_circle.png')"
+                      aspect-ratio="1"
+                      @click="goToGoogleLogin"
+                    />
+                  </v-col>
+                  <v-col cols="auto" class="icon-col">
+                    <v-img
+                      height="40"
+                      :src="require('@/assets/images/fixed/naver_circle.png')"
+                      aspect-ratio="1"
+                      @click="goToNaverLogin"
+                    />
+                  </v-col>
                 </v-row>
-              </v-form>
-            </v-card-text>
-            <v-row class="content-center">
-              <v-col cols="12">
-                <div class="text-center sub-text-2">
-                  <p>소셜 로그인을 원하신다면</p>
-                  <p>아래 버튼을 클릭해주세요</p>
-                  <v-img
-                    class="mx-auto icons"
-                    height="40"
-                    style="margin-top: 30px;"
-                    :src="require('@/assets/images/fixed/kakao_login_large_narrow.png')"
-                    aspect-ratio="1"
-                    @click="goToKakaoLogin"
-                  />
-                  <v-img
-                    class="mx-auto icons"
-                    height="40"
-                    style="margin-top: 30px;"
-                    :src="require('@/assets/images/fixed/google_login.png')"
-                    aspect-ratio="1"
-                    @click="goToGoogleLogin"
-                  />
-                  <v-img
-                    class="mx-auto icons"
-                    height="40"
-                    style="margin-top: 30px;"
-                    :src="require('@/assets/images/fixed/btnG_official.png')"
-                    aspect-ratio="1"
-                    @click="goToNaverLogin"
-                  />
-                </div>
-              </v-col>
-            </v-row>
-          </v-col>
-        </v-row>
-      </v-container>
-    </div>
-  </template>
+              </div>
+            </v-col>
+          </v-row>
+        </v-col>
+      </v-row>
+    </v-container>
+  </div>
+</template>
   
   <script>
   import { mapActions,useStore,mapState } from 'vuex'
@@ -215,9 +217,16 @@
     margin-right: auto;
   }
   
-  .icons {
-    cursor: pointer;
-  }
+  .icon-col {
+  display: block;
+  margin-top: 20px;
+  width: 60px;
+  height: 60px;
+  object-fit: contain;
+  cursor: pointer;
+  
+}
+
   
   .text-center {
     text-align: center;
