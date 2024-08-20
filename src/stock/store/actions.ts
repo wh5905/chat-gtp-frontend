@@ -9,33 +9,50 @@ import {
   SET_LOADING,
   SET_ERROR,
   SET_CURRENT_STOCK
-  
 } from "./mutation-types";
 
 export type StockActions = {
-  fetchStocks({ commit, state }: ActionContext<StockState, any>, page: number): Promise<void>;
-  fetchStockDetail(context: ActionContext<StockState, any>, ticker: string): Promise<void>;
+  fetchStocks(
+    { commit, state }: ActionContext<StockState, any>, 
+    { page, searchQuery }: { page: number, searchQuery: string }
+  ): Promise<void>;
+  fetchStockDetail(
+    context: ActionContext<StockState, any>, 
+    ticker: string
+  ): Promise<void>;
 }
 
 const actions: StockActions = {
-  async fetchStocks({ commit, state }, page: number): Promise<void> {
+  async fetchStocks(
+    { commit, state }, 
+    { page, searchQuery }: { page: number, searchQuery: string }
+  ): Promise<void> {
     commit(SET_LOADING, true);
     try {
-      const res = await axiosInst.djangoAxiosInst.get<StockData[]>(
-        '/board/get-all-stocks',
-        { params: { page, size: state.pageSize } }
+      const res = await axiosInst.djangoAxiosInst.get<{
+        stocks: StockData[], 
+        totalItems: number
+      }>(
+        '/board/stocks/', 
+        { 
+          params: { 
+            page, 
+            size: state.pageSize, 
+            search: searchQuery 
+          }
+        }
       );
-      // 데이터와 현재 페이지를 업데이트
-      commit(SET_STOCKS, res.data);
+      
+      commit(SET_STOCKS, res.data.stocks);
       commit(SET_CURRENT_PAGE, page);
       
-      // 총 페이지 수를 클라이언트 측에서 계산
-      const totalItems = 957; // 전체 항목 수를 알고 있다고 가정
-      const totalPages = Math.ceil(totalItems / state.pageSize);
+      const totalPages = Math.ceil(res.data.totalItems / state.pageSize);
       commit(SET_TOTAL_PAGES, totalPages);
       
-      console.log('Fetched stocks:', res.data);
-      console.log('Total Pages:', totalPages);
+      console.log('Fetched stocks:', res.data.stocks);
+      console.log('Current page:', page);
+      console.log('Total pages:', totalPages);
+      console.log('Total items:', res.data.totalItems);
     } catch (error) {
       commit(SET_ERROR, 'Failed to fetch stocks');
       console.error('Error fetching stocks:', error);
@@ -43,7 +60,7 @@ const actions: StockActions = {
       commit(SET_LOADING, false);
     }
   },
-
+  
   async fetchStockDetail({ commit }, ticker: string): Promise<void> {
     commit(SET_LOADING, true);
     try {
@@ -51,6 +68,7 @@ const actions: StockActions = {
         `/board/get-stock/${ticker}`
       );
       commit(SET_CURRENT_STOCK, res.data);
+      console.log('Fetched stock detail:', res.data);
     } catch (error) {
       commit(SET_ERROR, 'Failed to fetch stock detail');
       console.error('Error fetching stock detail:', error);
