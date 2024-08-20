@@ -8,7 +8,8 @@
             <i class="fas fa-search"></i>
           </span>
           <input
-            v-model="search"
+            v-model="searchQuery"
+            @input="debouncedSearch"
             class="form-control"
             placeholder="종목명 또는 티커 검색"
             aria-label="종목 검색"
@@ -20,7 +21,7 @@
       <div class="col-md-8 offset-md-2">
         <div class="list-group">
           <router-link
-            v-for="stock in paginatedStocks"
+            v-for="stock in stocks"
             :key="stock.id"
             :to="{ name: 'stock', params: { ticker: stock.ticker } }"
             class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
@@ -30,9 +31,21 @@
               <small class="text-muted">{{ stock.ticker }}</small>
             </div>
             <div class="d-flex align-items-center">
-              <span class="badge bg-primary rounded-pill me-3">
-                {{ formatCurrency(stock.close) }}
-              </span>
+              <div class="text-end me-3">
+                <span class="fw-bold">{{ formatCurrency(stock.close) }}</span>
+                <br />
+                <span
+                  :class="{
+                    'text-danger': stock.priceChange > 0,
+                    'text-primary': stock.priceChange < 0
+                  }"
+                >
+                  {{ formatCurrency(stock.priceChange) }} 
+                  <span v-if="stock.priceChange !== 0">
+                    ({{ formatPercentage(stock.percentageChange) }})
+                  </span>
+                </span>
+              </div>
               <button
                 class="btn btn-outline-secondary btn-sm favorite-button"
                 @click.stop="toggleFavorite(stock.id)"
@@ -43,7 +56,7 @@
             </div>
           </router-link>
         </div>
-        <div v-if="filteredStocks.length === 0" class="text-center mt-4">
+        <div v-if="stocks.length === 0" class="text-center mt-4">
           <p class="text-muted">검색 결과가 없습니다.</p>
         </div>
       </div>
@@ -51,136 +64,125 @@
     <!-- Pagination Controls -->
     <div class="row mt-4">
       <div class="col-md-8 offset-md-2 text-center">
-        <button
-          class="btn btn-primary me-2"
-          :disabled="currentPage <= 1"
-          @click="changePage(currentPage - 1)"
-        >
-          Previous
-        </button>
-        <span>Page {{ currentPage }} of {{ totalPages }}</span>
-        <button
-          class="btn btn-primary ms-2"
-          :disabled="currentPage >= totalPages"
-          @click="changePage(currentPage + 1)"
-        >
-          Next
-        </button>
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center">
+            <li class="page-item" :class="{ disabled: currentPage <= 1 }">
+              <a class="page-link" href="#" @click.prevent="changePage(currentPage - 1)">이전</a>
+            </li>
+            <li class="page-item" v-for="page in paginationRange" :key="page" :class="{ active: page === currentPage }">
+              <a class="page-link" href="#" @click.prevent="changePage(page)">{{ page }}</a>
+            </li>
+            <li class="page-item" :class="{ disabled: currentPage >= totalPages }">
+              <a class="page-link" href="#" @click.prevent="changePage(currentPage + 1)">다음</a>
+            </li>
+          </ul>
+        </nav>
       </div>
     </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed, onMounted } from "vue";
-import { useStore } from "vuex";
-import { StockData } from "@/stock/store/states";
 
-export default defineComponent({
-  setup() {
-    const store = useStore();
-    const search = ref("");
-    const currentPage = computed(() => store.state.stock.currentPage);
-    const totalPages = computed(() => store.state.stock.totalPages);
-    const pageSize = computed(() => store.state.stock.pageSize);
+<script>
+import axiosInst from "@/utility/axiosInstance"
+import { debounce } from 'lodash';
 
-    // Fetch stocks based on the current page
-    const fetchStocks = (page: number) => {
-      if (page >= 1 && page <= totalPages.value) {
-        store.dispatch("stock/fetchStocks", page);
-      }
-    };
-
-    // Fetch initial data
-    onMounted(() => {
-      fetchStocks(currentPage.value);
-    });
-
-    // Change page handler
-    const changePage = (page: number) => {
-      if (page >= 1 && page <= totalPages.value) {
-        store.dispatch("stock/fetchStocks", page);
-      }
-    };
-
-    const stocks = computed(() => store.state.stock.stocks || []);
-    const filteredStocks = computed(() => {
-      return stocks.value.filter(
-        (stock: StockData) =>
-          stock.name.toLowerCase().includes(search.value.toLowerCase()) ||
-          stock.ticker.toLowerCase().includes(search.value.toLowerCase())
-      );
-    });
-
-    const paginatedStocks = computed(() => {
-      const start = (currentPage.value - 1) * pageSize.value;
-      const end = start + pageSize.value;
-      return filteredStocks.value.slice(start, end);
-    });
-
-    const formatCurrency = (value: number) => {
-      return new Intl.NumberFormat("ko-KR", {
-        style: "currency",
-        currency: "KRW",
-      }).format(value);
-    };
-
-    // Manage favorites
-    const favorites = ref<number[]>([]);
-
-    const toggleFavorite = (stockId: number) => {
-      if (favorites.value.includes(stockId)) {
-        favorites.value = favorites.value.filter(id => id !== stockId);
-      } else {
-        favorites.value.push(stockId);
-      }
-    };
-
+export default {
+  data() {
     return {
-      search,
-      filteredStocks,
-      paginatedStocks,
-      formatCurrency,
-      currentPage,
-      totalPages,
-      changePage,
-      toggleFavorite,
-      favorites,
+      stocks: [],
+      currentPage: 1,
+      pageSize: 10,
+      totalItems: 0,
+      totalPages: 0,
+      searchQuery: '',
+      favorites: [],
+      loading: false,
     };
   },
-});
+  computed: {
+    paginationRange() {
+      const range = 2;
+      const start = Math.max(1, this.currentPage - range);
+      const end = Math.min(this.totalPages, this.currentPage + range);
+      return Array.from({ length: end - start + 1 }, (_, i) => start + i);
+    }
+  },
+  methods: {
+    async fetchStocks() {
+      this.loading = true;
+      try {
+        const response = await axiosInst.djangoAxiosInst.get('/board/stocks', {
+          params: {
+            page: this.currentPage,
+            size: this.pageSize,
+            search: this.searchQuery
+          }
+        });
+        this.stocks = response.data.stocks.map(stock => ({
+          ...stock,
+          priceChange: stock.close - stock.open,
+          percentageChange: ((stock.close - stock.open) / stock.open) * 100
+        }));
+        this.totalItems = response.data.totalItems;
+        this.totalPages = response.data.totalPages;
+        console.log('Fetched stocks:', this.stocks);
+      } catch (error) {
+        console.error('Error fetching stocks:', error);
+      } finally {
+        this.loading = false;
+      }
+    },
+    changePage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+        this.fetchStocks();
+        console.log('Changed to page:', page);
+      }
+    },
+    debouncedSearch: debounce(function() {
+      this.currentPage = 1;
+      this.fetchStocks();
+    }, 300),
+    formatCurrency(value) {
+      return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
+    },
+    formatPercentage(value) {
+      return `${value.toFixed(2)}%`;
+    },
+    toggleFavorite(stockId) {
+      const index = this.favorites.indexOf(stockId);
+      if (index === -1) {
+        this.favorites.push(stockId);
+      } else {
+        this.favorites.splice(index, 1);
+      }
+      // TODO: Implement API call to save favorites
+    },
+  },
+  mounted() {
+    this.fetchStocks();
+    // TODO: Fetch user's favorites from API
+  }
+};
 </script>
 
 <style scoped>
-.list-group-item:hover {
-  background-color: #f8f9fa;
-  transition: background-color 0.3s ease;
+.favorite-button {
+  transition: all 0.2s ease-in-out;
 }
-
-.badge {
-  transition: all 0.3s ease;
+.favorite-button.favorite {
+  color: gold;
+  border-color: gold;
 }
-
-.list-group-item:hover .badge {
+.favorite-button:hover {
   transform: scale(1.1);
 }
-
-/* Styling for the favorite button */
-.favorite-button {
-  position: relative;
-  border: none;
-  background: none;
-  cursor: pointer;
+.text-danger {
+  color: #ff0000; /* Red for positive change */
 }
-
-.favorite-button .fa-star {
-  color: #6c757d; /* Default color */
-  transition: color 0.3s ease;
-}
-
-.favorite-button.favorite .fa-star {
-  color: #ffc107; /* Yellow color for favorite */
+.text-primary {
+  color: #0000ff; /* Blue for negative change */
 }
 </style>
-
 
