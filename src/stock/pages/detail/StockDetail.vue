@@ -1,19 +1,19 @@
 <template>
   <div class="stock-detail-container" v-if="currentStock">
     <header class="stock-header">
-      <div class="stock-title">
-        <h1>{{ currentStock.name }}</h1>
-        <p class="ticker">{{ currentStock.ticker }}</p>
-      </div>
-      <div class="stock-price">
-        <h2 :class="{ 'up': priceChange > 0, 'down': priceChange < 0 }">
-          {{ formatCurrency(currentStock.close) }}
-        </h2>
-        <p class="change" :class="{ 'up': priceChange > 0, 'down': priceChange < 0 }">
-          {{ formatChange(priceChange) }} ({{ formatPercentage(priceChangePercent) }})
-        </p>
-      </div>
-    </header>
+    <div class="stock-title">
+      <h1>{{ currentStock.name }}</h1>
+      <p class="ticker">{{ currentStock.ticker }}</p>
+    </div>
+    <div class="stock-price">
+      <h2 :class="{ 'up': priceChange > 0, 'down': priceChange < 0 }">
+        {{ formatCurrency(currentStock.close) }}
+      </h2>
+      <p class="change" :class="{ 'up': priceChange > 0, 'down': priceChange < 0 }">
+        {{ formatChange(priceChange) }} ({{ formatPercentage(priceChangePercent) }})
+      </p>
+    </div>
+  </header>
 
     <div class="stock-info-grid">
       <div class="info-card">
@@ -98,6 +98,7 @@ export default defineComponent({
       try {
         const response = await axiosInst.djangoAxiosInst.get(`/board/stock/${ticker}/${startDate.value}/${endDate.value}/`);
         const chartData = response.data;
+        console.log('Chart data:', chartData);
         renderChart(chartData);
       } catch (error) {
         console.error('Error fetching chart data:', error);
@@ -192,23 +193,45 @@ export default defineComponent({
 </script>
 
 <style scoped>
+
+/* 기본 컨테이너 */
 .stock-detail-container {
-  max-width: 1000px;
   margin: 0 auto;
   padding: 20px;
+  background-color: #121212; /* 배경색 어두운 색으로 변경 */
+  color: #e0e0e0; /* 텍스트 색상 밝게 */
 }
 
+
+/* 헤더 스타일 */
 .stock-header {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 30px;
+  justify-content:space-around;
+  align-items: center;
+  padding: 20px;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  margin-bottom: 20px; /* 아래 요소와의 간격 추가 */
+  
+}
+.stock-title {
+  flex: 1;
+}
+.stock-price {
+  flex: 1;
+  text-align: right;
 }
 
 .stock-title h1 {
   margin: 0;
   font-size: 48px;
   font-weight: bold;
+  color: #e0e0e0; /* 제목 색상 밝게 */
+}
+
+.stock-header > .stock-title,
+.stock-header > .stock-price {
+  margin: 0 20px;
 }
 
 .ticker {
@@ -216,9 +239,7 @@ export default defineComponent({
   font-size: 18px;
 }
 
-.stock-price {
-  text-align: right;
-}
+
 
 .stock-price h2 {
   font-size: 36px;
@@ -230,9 +251,10 @@ export default defineComponent({
   margin: 5px 0 0;
 }
 
-.up { color: #f44336; }
-.down { color: #422af5; }
+.up { color: #f44336; } /* 상승 텍스트 색상 녹색 */
+.down { color: #401aff; } /* 하락 텍스트 색상 빨간색 */
 
+/* 정보 카드 스타일 */
 .stock-info-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -241,53 +263,57 @@ export default defineComponent({
 }
 
 .info-card {
-  background-color: #f8f9fa;
+  background-color: #1f1f1f; /* 카드 배경 어두운 색으로 변경 */
   border-radius: 10px;
   padding: 15px;
   text-align: center;
 }
 
 .high p {
-  color: red; 
+  color: #ff5252; /* 고가 글씨 색상 빨간색 */
 }
 
 .low p {
-  color: blue; 
+  color: #448aff; /* 저가 글씨 색상 파란색 */
 }
 
 .info-card h3 {
   margin: 0 0 10px;
   font-size: 16px;
-  color: #888;
+  color: #888; /* 서브 텍스트 색상 */
 }
 
 .info-card p {
   margin: 0;
   font-size: 18px;
   font-weight: bold;
+  color: #e0e0e0; /* 카드 텍스트 색상 밝게 */
 }
 
-/* 날짜 선택 스타일 추가 */
+/* 날짜 선택 스타일 */
 .date-selection {
   display: flex;
   align-items: center;
   gap: 10px; /* 간격 조정 */
 }
 
-
 .date-selection label {
   font-weight: bold;
   margin-right: 5px;
+  color: #e0e0e0; /* 라벨 텍스트 색상 */
 }
 
 .date-selection input {
   padding: 5px;
-  border: 1px solid #ccc;
+  border: 1px solid #444; /* 테두리 색상 어둡게 */
   border-radius: 5px;
+  background-color: #333; /* 입력 필드 배경색 어둡게 */
+  color: #e0e0e0; /* 입력 텍스트 색상 밝게 */
 }
 
+/* 차트 스타일 */
 .stock-chart {
-  background-color: #fff;
+  background-color: #1f1f1f; /* 차트 배경 어둡게 */
   border-radius: 10px;
   padding: 20px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
@@ -298,10 +324,12 @@ export default defineComponent({
   align-items: center;
 }
 
+/* 추가 정보 스타일 */
 .additional-info {
-  background-color: #f8f9fa;
+  background-color: #1f1f1f; /* 추가 정보 배경 어둡게 */
   border-radius: 10px;
   padding: 20px;
+  color: #e0e0e0; /* 텍스트 색상 밝게 */
 }
 
 .additional-info h3 {
