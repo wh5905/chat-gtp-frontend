@@ -244,6 +244,14 @@ if (ctx) {
   text-align: center;
 }
 
+.high p {
+  color: red; 
+}
+
+.low p {
+  color: blue; 
+}
+
 .info-card h3 {
   margin: 0 0 10px;
   font-size: 16px;
