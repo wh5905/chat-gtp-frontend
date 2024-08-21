@@ -20,11 +20,11 @@
         <h3>시가</h3>
         <p>{{ formatCurrency(currentStock.open) }}</p>
       </div>
-      <div class="info-card high">
+      <div class="info-card">
         <h3>고가</h3>
         <p>{{ formatCurrency(currentStock.high) }}</p>
       </div>
-      <div class="info-card low">
+      <div class="info-card">
         <h3>저가</h3>
         <p>{{ formatCurrency(currentStock.low) }}</p>
       </div>
@@ -36,12 +36,12 @@
 
     <!-- 날짜 선택 기능 추가 -->
     <div class="date-selection">
-    <label for="startDate">시작 날짜:</label>
-    <input type="date" id="startDate" v-model="startDate" @change="updateChart">
-    
-    <label for="endDate">종료 날짜:</label>
-    <input type="date" id="endDate" v-model="endDate" @change="updateChart">
-  </div>
+      <label for="startDate">시작 날짜:</label>
+      <input type="date" id="startDate" v-model="startDate" @change="updateChart">
+      
+      <label for="endDate">종료 날짜:</label>
+      <input type="date" id="endDate" v-model="endDate" @change="updateChart">
+    </div>
 
     <div class="stock-chart">
       <canvas id="stockChart"></canvas>
@@ -56,11 +56,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, onMounted, ref, Ref } from 'vue';
+import { defineComponent, computed, onMounted, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { StockData } from '@/stock/store/states';
-import Chart, { ChartConfiguration, ChartType, ChartData, ChartOptions } from 'chart.js/auto';
+import Chart from 'chart.js/auto';
 import axiosInst from "@/utility/axiosInstance";
 
 export default defineComponent({
@@ -69,24 +69,24 @@ export default defineComponent({
     const store = useStore();
     const route = useRoute();
 
-    const getFormattedDate = (date: Date): string => {
+    const getFormattedDate = (date: Date) => {
       return date.toISOString().split('T')[0];
     };
 
-    const currentStock = computed<StockData | null>(() => store.state.stock.currentStock as StockData);
-    const priceChange = computed<number>(() => {
+    const currentStock = computed(() => store.state.stock.currentStock as StockData);
+    const priceChange = computed(() => {
       if (!currentStock.value) return 0;
       return currentStock.value.close - currentStock.value.open;
     });
-    const priceChangePercent = computed<number>(() => {
+    const priceChangePercent = computed(() => {
       if (!currentStock.value) return 0;
       return (priceChange.value / currentStock.value.open) * 100;
     });
 
-    const startDate = ref<string>(getFormattedDate(new Date(new Date().setDate(new Date().getDate() - 14))));
-    const endDate = ref<string>(getFormattedDate(new Date()));
+    const startDate = ref(getFormattedDate(new Date(new Date().setDate(new Date().getDate() - 14))));
+    const endDate = ref(getFormattedDate(new Date()));
 
-    const chartInstance: Ref<Chart | null> = ref(null);
+    const chartInstance = ref<Chart | null>(null);
 
     onMounted(async () => {
       const ticker = route.params.ticker as string;
@@ -109,68 +109,66 @@ export default defineComponent({
       loadChartData(ticker);
     };
 
-    const renderChart = (data: { 날짜: string; 종가: number }[]) => {
-      const canvasElement = document.getElementById('stockChart') as HTMLCanvasElement | null;
+  const renderChart = (data: any) => {
+  const canvasElement = document.getElementById('stockChart') as HTMLCanvasElement | null;
 
-      if (chartInstance.value) {
-        chartInstance.value.destroy(); // 기존 차트를 파괴
-      }
+  if (chartInstance.value) {
+    chartInstance.value.destroy(); // 기존 차트를 파괴
+  }
 
-      if (canvasElement) {
-        const ctx = canvasElement.getContext('2d') as CanvasRenderingContext2D | null;
-        if (ctx) {
-          const labels = data.map((item) => item['날짜']);
-          const prices = data.map((item) => item['종가']);
+  if (canvasElement) {
+    const ctx = canvasElement.getContext('2d') as CanvasRenderingContext2D | null;
+if (ctx) {
+  const labels = data.map((item: any) => item['날짜']);
+  const prices = data.map((item: any) => item['종가']);
 
-          const config: ChartConfiguration<'line'> = {
-            type: 'line',
-            data: {
-              labels: labels,
-              datasets: [
-                {
-                  label: '종가',
-                  data: prices,
-                  borderColor: '#f44336',
-                  backgroundColor: 'rgba(244, 67, 54, 0.2)',
-                  fill: true,
-                },
-              ],
-            },
-            options: {
-              responsive: true,
-              scales: {
-                x: { display: true },
-                y: { display: true },
-              },
-            },
-          };
+  chartInstance.value = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [
+        {
+          label: '종가',
+          data: prices,
+          borderColor: '#f44336',
+          backgroundColor: 'rgba(244, 67, 54, 0.2)',
+          fill: true,
+        },
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        x: { display: true },
+        y: { display: true },
+      },
+    },
+  });
+} else {
+  console.error('Failed to get 2D context');
+}
+  } else {
+    console.error('Failed to find the canvas element.');
+  }
+};
 
-          chartInstance.value = new Chart(ctx, config);
-        } else {
-          console.error('Failed to get 2D context');
-        }
-      } else {
-        console.error('Failed to find the canvas element.');
-      }
-    };
-
-    const formatDate = (dateString: string): string => {
+    const formatDate = (dateString: string) => {
       return new Date(dateString).toLocaleDateString('ko-KR');
     };
 
-    const formatCurrency = (value: number): string => {
+    const formatCurrency = (value: number) => {
       return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
     };
 
-    const formatNumber = (value: number): string => {
+    const formatNumber = (value: number) => {
       return new Intl.NumberFormat('ko-KR').format(value);
     };
 
-    const formatChange = (value: number): string => {
+    const formatChange = (value: number) => {
       return (value > 0 ? '+' : '') + formatCurrency(Math.abs(value));
     };
 
-    const formatPercentage = (value: number): string => {
+    const formatPercentage = (value: number) => {
       return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
     };
 
@@ -207,8 +205,7 @@ export default defineComponent({
 
 .stock-title h1 {
   margin: 0;
-  font-size: 48px;
-  font-weight: bold;
+  font-size: 32px;
 }
 
 .ticker {
@@ -270,14 +267,13 @@ export default defineComponent({
 /* 날짜 선택 스타일 추가 */
 .date-selection {
   display: flex;
-  align-items: center;
-  gap: 10px; /* 간격 조정 */
+  justify-content: space-between;
+  margin-bottom: 20px;
 }
-
 
 .date-selection label {
   font-weight: bold;
-  margin-right: 5px;
+  margin-right: 10px;
 }
 
 .date-selection input {
