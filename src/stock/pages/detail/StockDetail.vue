@@ -248,11 +248,11 @@ export default defineComponent({
 }
 
 .high p {
-  color: red; /* 고가 글씨 색상 빨간색 */
+  color: red; 
 }
 
 .low p {
-  color: blue; /* 저가 글씨 색상 파란색 */
+  color: blue; 
 }
 
 .info-card h3 {
