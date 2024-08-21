@@ -3,7 +3,7 @@ import axios, { AxiosInstance } from "axios"
 
 const djangoAxiosInst: AxiosInstance = axios.create({
     baseURL: env.api.MAIN_API_URL,
-    timeout: 2500,
+    timeout: 10000,
 })
 
 export default { djangoAxiosInst }
