@@ -1,16 +1,21 @@
 <template>
-  <div class="container mt-5">
-    <h2 class="mb-4 text-center">주식 목록</h2>
+  <div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <router-link to="/" class="btn btn-link text-white p-0">
+        <i class="fas fa-chevron-left"></i>
+      </router-link>
+      <h2 class="text-white text-center mx-auto">주식 목록</h2>
+    </div>
     <div class="row justify-content-center mb-4">
       <div class="col-md-6">
         <div class="input-group">
-          <span class="input-group-text">
+          <span class="input-group-text text-white">
             <i class="fas fa-search"></i>
           </span>
           <input
             v-model="searchQuery"
             @input="debouncedSearch"
-            class="form-control"
+            class="form-control text-white"
             placeholder="종목명 또는 티커 검색"
             aria-label="종목 검색"
           />
@@ -81,7 +86,6 @@
     </div>
   </div>
 </template>
-
 
 <script>
 import axiosInst from "@/utility/axiosInstance"
@@ -168,21 +172,63 @@ export default {
 </script>
 
 <style scoped>
+.container-fluid {
+  background-color: #1e1e1e;
+  border-radius: 1px;
+  padding: 20px;
+}
+
+.input-group-text {
+  background-color: #333333;
+  border: none;
+  color: #ffffff;
+}
+
+.form-control {
+  background-color: #333333;
+  border: none;
+  color: #ffffff;
+}
+
+.list-group-item {
+  background-color: #1e1e1e;
+  border: 1px solid #333333;
+  color: #ffffff;
+}
+
+.list-group-item:hover {
+  background-color: #333333;
+}
+
+.page-link {
+  background-color: #333333;
+  border: none;
+  color: #ffffff;
+}
+
+.page-item.active .page-link {
+  background-color: #555555;
+  border: none;
+}
+
 .favorite-button {
   transition: all 0.2s ease-in-out;
 }
+
 .favorite-button.favorite {
   color: gold;
   border-color: gold;
 }
+
 .favorite-button:hover {
   transform: scale(1.1);
 }
+
 .text-danger {
   color: #ff0000; /* Red for positive change */
 }
+
 .text-primary {
   color: #0000ff; /* Blue for negative change */
 }
 </style>
-
