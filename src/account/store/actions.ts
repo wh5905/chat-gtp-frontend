@@ -100,11 +100,12 @@ const actions: AccountActions = {
         email: string
     ): Promise<void>{
         try{
-            await axiosInst.djangoAxiosInst.post('/account/find-nickname',email)
+            return await axiosInst.djangoAxiosInst.post('/account/find-nickname',email)
     } catch (error){
         console.error('닉네임 확인 실패:',error)
         throw error
         }
+    },
     }
 };
 
