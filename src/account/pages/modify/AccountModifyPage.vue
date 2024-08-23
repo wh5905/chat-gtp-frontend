@@ -1,0 +1,211 @@
+<template>
+  <v-container class="container">
+    <v-app-bar app color=#121212 dark>
+      <v-spacer></v-spacer>
+      <v-btn icon @click="goToHome">
+        <v-icon>mdi-home</v-icon>
+      </v-btn>
+    </v-app-bar>
+    <v-card class="change-card mx-auto" max-width="500" min-height="600">
+      <v-card-title class="title">Profile Settings</v-card-title>
+
+      <v-card-text>
+        <v-form ref="form" v-model="valid" lazy-validation>
+          <!-- Conditionally render password fields based on generalLogin -->
+          <template v-if="isGeneralLogin">
+            <v-text-field
+              v-model="currentPassword"
+              label="Current Password"
+              :type="showPassword ? 'text' : 'password'"
+              :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append="togglePasswordVisibility"
+              :rules="[rules.required]"
+              :error-messages="passwordErrorMessage"
+            ></v-text-field>
+
+            <v-text-field
+              v-model="newPassword"
+              label="New Password"
+              :type="showPassword ? 'text' : 'password'"
+              :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append="togglePasswordVisibility"
+              :rules="passwordRules"
+            ></v-text-field>
+
+            <v-text-field
+              v-model="confirmPassword"
+              label="Confirm New Password"
+              :type="showPassword ? 'text' : 'password'"
+              :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append="togglePasswordVisibility"
+              :rules="[rules.required, rules.matchPassword]"
+            ></v-text-field>
+
+            <v-btn class="mt-4" color="primary" @click="validateAndChangePassword">
+              Change Password
+            </v-btn>
+
+            <v-divider class="mt-4 mb-4"></v-divider>
+          </template>
+
+          <v-text-field
+            v-model="newNickname"
+            label="New Nickname"
+            :rules="[rules.required]"
+            @input="updateValidState"
+          ></v-text-field>
+
+          <v-btn class="mt-4" :disabled="!valid" color="primary" @click="onChangeNickname">
+            Change Nickname
+          </v-btn>
+        </v-form>
+      </v-card-text>
+    </v-card>
+  </v-container>
+</template>
+
+<script>
+import router from '@/router';
+import { mapActions } from 'vuex';
+
+const accountModule = 'accountModule';
+
+export default {
+  data() {
+    return {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      newNickname: '',
+      valid: false, // Track form validity
+      showPassword: false,
+      isPasswordValid: false,
+      passwordErrorMessage: '',
+      isGeneralLogin: false, // Add this flag to determine if generalLogin exists
+      rules: {
+        required: value => !!value || 'Required.',
+        matchPassword: value => value === this.newPassword || 'Passwords do not match',
+      },
+    };
+  },
+  computed: {
+    passwordRules() {
+      return [
+        this.rules.required,
+        v => v.length >= 8 || 'Password must be at least 8 characters long.',
+        v => /[a-z]/.test(v) || 'Password must contain at least one lowercase letter.',
+        v => /[A-Z]/.test(v) || 'Password must contain at least one uppercase letter.',
+        v => /[!@#$%^&*(),.?":{}|<>]/.test(v) || 'Password must contain at least one special character.',
+      ];
+    },
+  },
+  created() {
+    // Check if generalLogin exists in localStorage
+    this.isGeneralLogin = !!localStorage.getItem('generalLogin');
+  },
+  methods: {
+    ...mapActions(accountModule, [
+      'requestAccountCheckToDjango',
+      'requestPasswordModifyToDjango',
+      'requestNicknameModifyToDjango',
+    ]),
+    togglePasswordVisibility() {
+      this.showPassword = !this.showPassword;
+    },
+    async checkPassword() {
+      try {
+        const isAccountCheck = await this.requestAccountCheckToDjango({
+          email: localStorage.getItem('email'),
+          password: this.currentPassword,
+        });
+
+        if (isAccountCheck) {
+          this.passwordErrorMessage = ''; // Clear the error message if the password is correct
+          this.isPasswordValid = true;
+        } else {
+          this.passwordErrorMessage = '현재 비밀번호가 틀렸습니다.';
+          this.isPasswordValid = false;
+        }
+      } catch (error) {
+        this.passwordErrorMessage = '비밀번호 확인에 실패했습니다.';
+        this.isPasswordValid = false;
+      }
+    },
+    async validateAndChangePassword() {
+      await this.checkPassword();
+
+      if (!this.isPasswordValid) {
+        return;
+      }
+
+      if (this.newPassword !== this.confirmPassword) {
+        alert('변경 비밀번호가 일치하지 않습니다.');
+        return;
+      }
+
+      this.onChangePassword();
+    },
+    onChangePassword() {
+      this.requestPasswordModifyToDjango({
+        email: localStorage.getItem('email'),
+        newPassword: this.newPassword,
+      })
+        .then(() => {
+          this.$router.push('/account/login');
+          localStorage.removeItem('generalLogin');
+          localStorage.removeItem('email');
+          alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인을 진행해주세요');
+        })
+        .catch(err => {
+          console.error('Failed to change password:', err);
+        });
+    },
+    onChangeNickname() {
+      if (this.newNickname) {
+        this.requestNicknameModifyToDjango({
+          email: localStorage.getItem('email'),
+          newNickname: this.newNickname,
+        })
+          .then(() => {
+            this.$router.push('/');
+            alert("닉네임이 성공적으로 변경되었습니다.")
+          })
+          .catch(err => {
+            console.error('Failed to change nickname:', err);
+          });
+      }
+    },
+    updateValidState() {
+      this.valid = !!this.newNickname; // Check if the nickname field is not empty
+    },
+    goToHome(){
+      this.$router.push("/")
+    }
+  },
+};
+</script>
+
+<style scoped>
+.container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.change-card {
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.v-divider {
+  margin: 20px 0;
+}
+</style>
