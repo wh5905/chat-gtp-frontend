@@ -50,14 +50,23 @@
 
     <v-app-bar app flat color="#212121">
       <v-app-bar-nav-icon @click="toggleDrawer"></v-app-bar-nav-icon>
-      <v-toolbar-title>ChatGPT Style</v-toolbar-title>
-      <v-btn v-if="isNotAuthenticated" text @click="signIn" class="btn-text">
-        <v-icon right>mdi-login</v-icon>
-        <span>LogIn</span>
+      <v-toolbar-title>ChatGTP</v-toolbar-title>
+      
+      <v-spacer></v-spacer>
+      
+      <v-btn v-if="isAuthenticated" text @click="goToMyPage" class="btn-text">
+        <v-icon right>mdi-account</v-icon>
+        <span>My Page</span>
       </v-btn>
+
       <v-btn v-if="isAuthenticated" text @click="signOut" class="btn-text">
         <v-icon right>mdi-logout</v-icon>
         <span>LogOut</span>
+      </v-btn>
+
+      <v-btn v-if="isNotAuthenticated" text @click="signIn" class="btn-text">
+        <v-icon right>mdi-login</v-icon>
+        <span>LogIn</span>
       </v-btn>
     </v-app-bar>
 
@@ -87,6 +96,7 @@
               </div>
             </v-card-text>
           </v-card>
+          
         </div>
       </v-container>
       <v-dialog v-model="showDialog" max-width="400">
@@ -118,13 +128,13 @@ export default defineComponent({
     const drawer = ref(true);
     const isBookmarksOpen = ref(false);
     const isHistoryOpen = ref(false);
-    const showDialog = ref(false); // 팝업 창을 제어하는 ref
-
+    const showDialog = ref(false);
     const isKakaoAuthenticated = ref(false);
     const isLoggedIn = ref(false);
     const isGoogleAuthenticated = ref(false);
     const isNaverAuthenticated = ref(false);
 
+    
     const isAuthenticated = computed(() => {
       return (
         isKakaoAuthenticated.value || 
@@ -178,25 +188,33 @@ export default defineComponent({
       router.push('/account/login');
     };
 
+    const goToMyPage = () => {
+      router.push('/account/my');
+    };
+
     const signOut = async () => {
       if (isLoggedIn.value) {
         await store.commit('accountModule/REQUEST_IS_ACCOUNT_TO_DJANGO', false);
         localStorage.removeItem('generalLogin');
+        localStorage.removeItem('email')
         isLoggedIn.value = false;
       }
       if (isKakaoAuthenticated.value) {
         await store.dispatch('authenticationModule/requestLogoutToDjango');
         localStorage.removeItem('userToken');
+        localStorage.removeItem('email')
         isKakaoAuthenticated.value = false;
       }
       if (isGoogleAuthenticated.value) {
         await store.dispatch('GoogleAuthenticationModule/requestLogoutToDjango');
         localStorage.removeItem('googleUserToken');
+        localStorage.removeItem('email')
         isGoogleAuthenticated.value = false;
       }
       if (isNaverAuthenticated.value) {
         await store.dispatch('NaverAuthenticationModule/requestLogoutToDjango');
         localStorage.removeItem('naverUserToken');
+        localStorage.removeItem('email')
         isNaverAuthenticated.value = false;
       }
       router.push('/');
@@ -205,22 +223,22 @@ export default defineComponent({
     onMounted(async () => {
       const generalLogin = localStorage.getItem('generalLogin');
       if (generalLogin) {
-        console.log("You already has a generalLogin!");
+        console.log("You already have a generalLogin!");
         isLoggedIn.value = true;
       }
       const userToken = localStorage.getItem('userToken');
       if (userToken) {
-        console.log("You already has a userToken!");
+        console.log("You already have a userToken!");
         isKakaoAuthenticated.value = true;
       }
       const googleUserToken = localStorage.getItem('googleUserToken');
       if (googleUserToken) {
-        console.log("You already has a googleUserToken!");
+        console.log("You already have a googleUserToken!");
         isGoogleAuthenticated.value = true;
       }
       const naverUserToken = localStorage.getItem('naverUserToken');
       if (naverUserToken) {
-        console.log("You already has a naverUserToken!");
+        console.log("You already have a naverUserToken!");
         isNaverAuthenticated.value = true;
       }
     });
@@ -238,6 +256,7 @@ export default defineComponent({
       isAuthenticated,
       isNotAuthenticated,
       signIn,
+      goToMyPage,
       signOut,
       showDialog,
       closeDialog,
@@ -268,7 +287,7 @@ export default defineComponent({
   background-color: #212121;
   border-radius: 8px;
   padding: 20px;
-  height: 700px;
+  height: 700vh;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   max-height: 700px;
   overflow-y: auto;
@@ -316,8 +335,8 @@ export default defineComponent({
 }
 
 .send-button {
-  width: 40px;
-  height: 40px;
+  width: 40vh;
+  height: 40vh;
   border-radius: 50%;
   background-color: black;
   color: white;
@@ -335,6 +354,6 @@ export default defineComponent({
 }
 
 .clear-button {
-  margin-left: 8px;
+  margin-left: 8vh;
 }
 </style>

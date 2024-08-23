@@ -56,6 +56,9 @@
                                     v-model="password"
                                     label="Password"
                                     required
+                                    :type="showPassword ? 'text' : 'password'"
+                                    :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                                    @click:append="togglePasswordVisibility"
                                     :rules="passwordRules"/>
                         </v-form>
                     </v-card-text>
@@ -87,6 +90,7 @@ export default {
             email: '',
             nickname: '',
             password: "",
+            showPassword: false,
             emailRules: [
                 v => !!v || 'Email 은 필수입니다!',
                 v => /.+@.+\..+/.test(v) || '유효한 Email 주소를 입력하세요!'
@@ -162,6 +166,9 @@ export default {
                 this.isNicknameValid = false
             }
         },
+        togglePasswordVisibility() {
+            this.showPassword = !this.showPassword;
+        },
         async submitForm () {
             console.log('신청하기 누름')
             console.log(this.email,this.nickname,this.password)
@@ -176,8 +183,8 @@ export default {
 
                 await this.requestCreateNewAccountToDjango(accountInfo)
                 console.log('전송한 데이터:', accountInfo)
+                router.push('/account/login')
                 alert('회원가입이 되었습니다.\n 로그인을 진행해주세요')
-                router.push('/account/register')
             }
         },
     },

@@ -49,6 +49,7 @@
                 } else {
                     console.error('AccessToken is missing');
                 }
+                localStorage.setItem('email',this.email)
                 this.$router.push('/')
             }else {
                 const accountInfo = {
