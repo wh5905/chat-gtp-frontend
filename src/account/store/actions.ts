@@ -24,6 +24,14 @@ export type AccountActions = {
         context: ActionContext<AccountState,any>,
         email: string
     ): Promise<void>
+    requestNicknameModifyToDjango(
+        context: ActionContext<AccountState, any>,
+        payload: { email: string; newNickname: string }
+    ): Promise<void>;
+    requestPasswordModifyToDjango(
+        context: ActionContext<AccountState, any>,
+        payload: { email: string; newPassword: string }
+    ): Promise<void>
 }
 
 const actions: AccountActions = {
@@ -106,6 +114,27 @@ const actions: AccountActions = {
         throw error
         }
     },
+    async requestPasswordModifyToDjango(
+        context: ActionContext<AccountState, any>,
+        payload: { email: string; newPassword: string }
+    ): Promise<void> {
+        try {
+            await axiosInst.djangoAxiosInst.post('/account/modify-password', { email: payload.email, newPassword: payload.newPassword });
+        } catch (error) {
+            console.error('비밀번호 변경 실패:', error);
+            throw error;
+        }
+    },
+    async requestNicknameModifyToDjango(
+        context: ActionContext<AccountState, any>,
+        payload: { email: string; newNickname: string }
+    ): Promise<void> {
+        try {
+            await axiosInst.djangoAxiosInst.post('/account/modify-nickname', { email: payload.email, newNickname: payload.newNickname });
+        } catch (error) {
+            console.error('닉네임 변경 실패:', error);
+            throw error;
+        }
     }
 };
 
