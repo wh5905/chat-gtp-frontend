@@ -1,9 +1,13 @@
 <template>
   <div class="container-fluid">
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <router-link to="/" class="btn btn-link text-white p-0">
-        <i class="fas fa-chevron-left"></i>
-      </router-link>
+      <v-app-bar app color=#121212 dark>
+      <v-toolbar-title class="mr-4">주식 목록</v-toolbar-title>
+      <v-spacer></v-spacer>
+      <v-btn icon @click="goToHome">
+        <v-icon>mdi-home</v-icon>
+      </v-btn>
+    </v-app-bar>
       <h2 class="text-white text-center mx-auto">주식 목록</h2>
     </div>
     <div class="row justify-content-center mb-4">
@@ -163,6 +167,9 @@ export default {
       }
       // TODO: Implement API call to save favorites
     },
+    goToHome(){
+      this.$router.push("/")
+    }
   },
   mounted() {
     this.fetchStocks();

@@ -1,5 +1,14 @@
 <template>
   <div class="stock-detail-container" v-if="currentStock">
+    <v-app-bar app color=#121212 dark>
+      <v-btn icon @click="goToHome">
+        <v-icon>mdi-home</v-icon>
+      </v-btn>
+      <v-spacer></v-spacer>
+      <v-btn icon @click="goToStockList">
+        <v-icon>mdi-format-list-bulleted</v-icon>
+      </v-btn>
+    </v-app-bar>
     <header class="stock-header">
     <div class="stock-title">
       <h1>{{ currentStock.name }}</h1>
@@ -62,6 +71,7 @@ import { useRoute } from 'vue-router';
 import { StockData } from '@/stock/store/states';
 import Chart, { ChartConfiguration, ChartType, ChartData, ChartOptions } from 'chart.js/auto';
 import axiosInst from "@/utility/axiosInstance";
+import router from '@/router';
 
 export default defineComponent({
   name: 'StockDetail',
@@ -174,6 +184,13 @@ export default defineComponent({
     const formatPercentage = (value: number): string => {
       return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
     };
+    const goToHome = () => {
+      router.push('/');
+    };
+
+    const goToStockList = () => {
+      router.push('/stocks/list')
+    }
 
     return {
       currentStock,
@@ -187,6 +204,8 @@ export default defineComponent({
       formatNumber,
       formatChange,
       formatPercentage,
+      goToStockList,
+      goToHome,
     };
   },
 });
