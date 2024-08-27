@@ -20,6 +20,9 @@ export type StockActions = {
     context: ActionContext<StockState, any>, 
     ticker: string
   ): Promise<void>;
+  fetchNews(
+    context: ActionContext<StockState, any>, 
+  ): Promise<void>;
 }
 
 const actions: StockActions = {
@@ -60,7 +63,6 @@ const actions: StockActions = {
       commit(SET_LOADING, false);
     }
   },
-  
   async fetchStockDetail({ commit }, ticker: string): Promise<void> {
     commit(SET_LOADING, true);
     try {
@@ -75,6 +77,18 @@ const actions: StockActions = {
     } finally {
       commit(SET_LOADING, false);
     }
+  },
+  async fetchNews(
+    context: ActionContext<StockState, any>, 
+  ): Promise<void>{
+    try {
+      const paper = await axiosInst.djangoAxiosInst.get<StockData>(
+        '/crawler/news-request'
+      );
+      console.log('Fetched news:', paper);
+    }catch (error) {
+      console.error('Error fetching stock detail:', error);
+    } 
   }
 };
 

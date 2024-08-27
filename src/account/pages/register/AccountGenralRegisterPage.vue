@@ -48,7 +48,7 @@
                                             @click="checkNicknameDuplication"
                                             class="check-button"
                                             small>
-                                        아이디 중복 검사
+                                        닉네임 중복 검사
                                     </v-btn>
                                 </v-col>
                             </v-row>
@@ -147,7 +147,7 @@ export default {
             }
         },
         async checkNicknameDuplication () {
-            console.log('아이디 중복 검사')
+            console.log('닉네임 중복 검사')
 
             try {
                 const isDuplicate = await this.requestNicknameDuplicationCheckToDjango({
