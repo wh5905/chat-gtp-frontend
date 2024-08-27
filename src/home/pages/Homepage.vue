@@ -3,7 +3,6 @@
     <v-navigation-drawer v-model="drawer" class="navi" app permanent>
       <v-container fluid class="pa-0" style="overflow: auto;">
         <v-list>
-          <!-- 다른 항목들... -->
           <v-list-item @click="toggleBookmarks" class="clickable-item">
             <v-list-item-icon>
               <v-icon>mdi-bookmark</v-icon>
@@ -87,7 +86,7 @@
             <v-card-text>
               <div class="input-container">
                 <v-text-field 
-                  v-model="messageInput" 
+                  v-model="userInput" 
                   label="Type your message" 
                   outlined 
                   dense 
@@ -118,17 +117,19 @@
 import { defineComponent, ref, onMounted, computed } from 'vue';
 import router from '@/router';
 import { useStore } from 'vuex';
+import { timeout } from 'd3';
 
 export default defineComponent({
   name: 'HomeView',
   setup() {
     const store = useStore();
-    const messageInput = ref('');
+    const userInput = ref('');
     const messages = ref<Array<{ text: string; isUser: boolean }>>([]);
     const drawer = ref(true);
     const isBookmarksOpen = ref(false);
     const isHistoryOpen = ref(false);
     const showDialog = ref(false);
+    const aianswer = ref("")
     const isKakaoAuthenticated = ref(false);
     const isLoggedIn = ref(false);
     const isGoogleAuthenticated = ref(false);
@@ -152,21 +153,38 @@ export default defineComponent({
         !isNaverAuthenticated.value
       );
     });
+    const sleep = (ms:number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-    const sendMessage = () => {
-      if (isAuthenticated.value) {
-        if (messageInput.value.trim()) {
-          messages.value.push({ text: messageInput.value, isUser: true });
-          messageInput.value = '';
-          // Simulating bot response
-          setTimeout(() => {
-            messages.value.push({ text: 'This is a response from the bot.', isUser: false });
-          }, 1000);
+      const sendMessage = async () => {
+        if (isAuthenticated.value) {
+          if (userInput.value.trim()) {
+            const messageToSend = userInput.value;
+            userInput.value = '';
+            
+            messages.value.push({ text: messageToSend, isUser: true });
+            
+            await store.dispatch('userModule/requestquestionToFastAPI', { data: messageToSend });
+
+            let response = null;
+            for (let i = 0; i < 10; i++) {
+              await sleep(2000);
+              response = await store.dispatch('userModule/requestAnswerToFastAPI');
+              
+              if (response && response.answer) {
+                const aianswer = response.answer;
+                messages.value.push({ text: aianswer, isUser: false });
+                break;
+              }
+            }
+
+            if (!response || !response.answer) {
+              messages.value.push({ text: "No response from AI after multiple attempts.", isUser: false });
+            }
+          }
+        } else {
+          showDialog.value = true;
         }
-      } else {
-        showDialog.value = true; // 로그인 안 된 경우 팝업 창 띄우기
-      }
-    };
+      };
 
     const closeDialog = () => {
       showDialog.value = false;
@@ -244,7 +262,7 @@ export default defineComponent({
     });
 
     return {
-      messageInput,
+      userInput,
       messages,
       sendMessage,
       drawer,
@@ -260,6 +278,7 @@ export default defineComponent({
       signOut,
       showDialog,
       closeDialog,
+      aianswer,
     };
   }
 });

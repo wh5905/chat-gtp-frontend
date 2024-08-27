@@ -1,6 +1,6 @@
 <template>
   <v-container class="container" fluid>
-    <v-app-bar app color=#121212 dark>
+    <v-app-bar app color="#121212" dark>
       <v-spacer></v-spacer>
       <v-btn icon @click="goToHome">
         <v-icon>mdi-home</v-icon>
@@ -9,8 +9,8 @@
     <div class="id-card-container">
       <v-card class="id-card" min-height="450" style="background-color: white; color: #333;">
         <div class="company-logo">ChatGPT</div>
-        <v-avatar size="100" class="avatar-margin">
-          <v-img :src="imageSrc"></v-img>
+        <v-avatar size="120" class="avatar-margin">
+          <v-img :src="imageSrc" cover></v-img>
         </v-avatar>
         <v-card-text>
           <h2 class="text-h5 mt-4 mb-2" style="color: #4caf50;">{{ nickname }}</h2>
@@ -20,9 +20,6 @@
         <v-card-actions class="card-actions">
           <v-btn text class="text-button" @click="ModifyAccount">
             Edit Profile
-          </v-btn>
-          <v-btn text class="text-button" @click="onClickAccountWithdraw">
-            Withdraw
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -38,7 +35,7 @@ const accountModule = "accountModule";
 export default {
   data() {
     return {
-      imageSrc: require("@/assets/images/fixed/potato.jpg"),
+      imageSrc: require("@/assets/images/fixed/user.png"),
       email: "",
       nickname: "",
       menuOpen: false,
@@ -51,7 +48,6 @@ export default {
     try {
       const email = localStorage.getItem("email");
       const nickname = await this.requestNicknameToDjango({ email });
-      console.log(nickname);
       this.email = email;
       this.nickname = nickname.data;
     } catch (error) {
@@ -60,9 +56,6 @@ export default {
   },
   methods: {
     ...mapActions(accountModule, ["requestNicknameToDjango"]),
-    onClickAccountWithdraw() {
-      this.$router.push({ name: "AccountWithdrawPage" });
-    },
     ModifyAccount() {
       this.$router.push('/account/modify')
     },
@@ -88,7 +81,7 @@ export default {
 .id-card-container {
   display: flex;
   justify-content: center;
-  align-items: center; /* 수직 정렬 */
+  align-items: center;
   margin-top: 20vh;
 }
 
@@ -117,7 +110,6 @@ export default {
 
 .v-avatar {
   margin: 0 auto;
-  border: 2px solid #4caf50;
 }
 
 .divider {

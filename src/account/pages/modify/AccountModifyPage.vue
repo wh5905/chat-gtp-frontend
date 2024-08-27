@@ -1,12 +1,15 @@
 <template>
   <v-container class="container">
     <v-app-bar app color=#121212 dark>
+      <v-btn icon @click="goToBack">
+        <v-icon>mdi-account</v-icon>
+      </v-btn>
       <v-spacer></v-spacer>
       <v-btn icon @click="goToHome">
         <v-icon>mdi-home</v-icon>
       </v-btn>
     </v-app-bar>
-    <v-card class="change-card mx-auto" max-width="500" min-height="600">
+    <v-card class="change-card" max-width="500" min-height="600">
       <v-card-title class="title">Profile Settings</v-card-title>
 
       <v-card-text>
@@ -22,7 +25,6 @@
               :rules="[rules.required]"
               :error-messages="passwordErrorMessage"
             ></v-text-field>
-
             <v-text-field
               v-model="newPassword"
               label="New Password"
@@ -53,9 +55,10 @@
             label="New Nickname"
             :rules="[rules.required]"
             @input="updateValidState"
+            :error-messages="nicknameErrorMessages"
           ></v-text-field>
 
-          <v-btn class="mt-4" :disabled="!valid" color="primary" @click="onChangeNickname">
+          <v-btn class="mt-4" color="primary" @click="validateAndChangeNickname">
             Change Nickname
           </v-btn>
         </v-form>
@@ -80,7 +83,9 @@ export default {
       valid: false, // Track form validity
       showPassword: false,
       isPasswordValid: false,
+      isNicknameValid: false,
       passwordErrorMessage: '',
+      nicknameErrorMessages: '',
       isGeneralLogin: false, // Add this flag to determine if generalLogin exists
       rules: {
         required: value => !!value || 'Required.',
@@ -108,6 +113,7 @@ export default {
       'requestAccountCheckToDjango',
       'requestPasswordModifyToDjango',
       'requestNicknameModifyToDjango',
+      'requestNicknameDuplicationCheckToDjango',
     ]),
     togglePasswordVisibility() {
       this.showPassword = !this.showPassword;
@@ -143,7 +149,9 @@ export default {
         return;
       }
 
-      this.onChangePassword();
+      if (confirm("비밀번호를 변경하시겠습니까?")) {
+        this.onChangePassword();
+      }
     },
     onChangePassword() {
       this.requestPasswordModifyToDjango({
@@ -175,11 +183,45 @@ export default {
           });
       }
     },
+    async checkNicknameDuplication() {
+      console.log('닉네임 중복 검사');
+
+      try {
+        const isDuplicate = await this.requestNicknameDuplicationCheckToDjango({
+          newNickname: this.newNickname.trim()
+        });
+        console.log(isDuplicate);
+        if (isDuplicate) {
+          this.nicknameErrorMessages = ['이 nickname은 이미 사용중입니다!'];
+          this.isNicknameValid = false;
+        } else {
+          this.nicknameErrorMessages = [];
+          this.isNicknameValid = true;
+        }
+      } catch (error) {
+        alert('닉네임 중복 확인에 실패했습니다!');
+        this.isNicknameValid = false;
+      }
+    },
+    async validateAndChangeNickname() {
+      await this.checkNicknameDuplication();
+
+      if (!this.isNicknameValid) {
+        return;
+      }
+
+      if (confirm("닉네임을 변경하시겠습니까?")) {
+        this.onChangeNickname();
+      }
+    },
     updateValidState() {
       this.valid = !!this.newNickname; // Check if the nickname field is not empty
     },
-    goToHome(){
-      this.$router.push("/")
+    goToHome() {
+      this.$router.push("/");
+    },
+    goToBack() {
+      this.$router.push("/account/my")
     }
   },
 };
