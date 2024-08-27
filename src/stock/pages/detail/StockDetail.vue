@@ -1,5 +1,5 @@
 <template>
-  <div class="stock-detail-container" v-if="currentStock">
+ <div class="stock-detail-container" v-if="currentStock">
     <v-app-bar app color=#121212 dark>
       <v-btn icon @click="goToHome">
         <v-icon>mdi-home</v-icon>
@@ -10,20 +10,19 @@
       </v-btn>
     </v-app-bar>
     <header class="stock-header">
-    <div class="stock-title">
-      <h1>{{ currentStock.name }}</h1>
-      <p class="ticker">{{ currentStock.ticker }}</p>
-    </div>
-    <div class="stock-price">
-      <h2 :class="{ 'up': priceChange > 0, 'down': priceChange < 0 }">
-        {{ formatCurrency(currentStock.close) }}
-      </h2>
-      <p class="change" :class="{ 'up': priceChange > 0, 'down': priceChange < 0 }">
-        {{ formatChange(priceChange) }} ({{ formatPercentage(priceChangePercent) }})
-      </p>
-    </div>
-  </header>
-
+      <div class="stock-title">
+        <h1>{{ currentStock.name }}</h1>
+        <p class="ticker">{{ currentStock.ticker }}</p>
+      </div>
+      <div class="stock-price">
+        <h2 :class="{ 'up': currentStock.priceChange && currentStock.priceChange > 0, 'down': currentStock.priceChange && currentStock.priceChange < 0 }">
+          {{ formatCurrency(currentStock.close) }}
+        </h2>
+        <p :class="{ 'up': currentStock.priceChange && currentStock.priceChange > 0, 'down': currentStock.priceChange && currentStock.priceChange < 0 }">
+          {{ formatChange(currentStock.priceChange ?? 0) }} ({{ formatPercentage(currentStock.percentageChange ?? 0) }})
+        </p>
+      </div>
+    </header>
     <div class="stock-info-grid">
       <div class="info-card">
         <h3>시가</h3>
@@ -42,6 +41,7 @@
         <p>{{ formatNumber(currentStock.volume) }}</p>
       </div>
     </div>
+
 
     <!-- 날짜 선택 기능 추가 -->
     <div class="date-selection">
@@ -69,7 +69,7 @@ import { defineComponent, computed, onMounted, ref, Ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRoute } from 'vue-router';
 import { StockData } from '@/stock/store/states';
-import Chart, { ChartConfiguration, ChartType, ChartData, ChartOptions } from 'chart.js/auto';
+import Chart, { ChartConfiguration } from 'chart.js/auto';
 import axiosInst from "@/utility/axiosInstance";
 import router from '@/router';
 
@@ -83,15 +83,7 @@ export default defineComponent({
       return date.toISOString().split('T')[0];
     };
 
-    const currentStock = computed<StockData | null>(() => store.state.stock.currentStock as StockData);
-    const priceChange = computed<number>(() => {
-      if (!currentStock.value) return 0;
-      return currentStock.value.close - currentStock.value.open;
-    });
-    const priceChangePercent = computed<number>(() => {
-      if (!currentStock.value) return 0;
-      return (priceChange.value / currentStock.value.open) * 100;
-    });
+    const currentStock = ref<StockData | null>(null);
 
     const startDate = ref<string>(getFormattedDate(new Date(new Date().setDate(new Date().getDate() - 14))));
     const endDate = ref<string>(getFormattedDate(new Date()));
@@ -100,9 +92,40 @@ export default defineComponent({
 
     onMounted(async () => {
       const ticker = route.params.ticker as string;
-      await store.dispatch('stock/fetchStockDetail', ticker);
+      await fetchRealtimeStockData(ticker); // 실시간 데이터 가져오기
+      // await store.dispatch('stock/fetchStockDetail', ticker);
       loadChartData(ticker);
     });
+
+    const fetchRealtimeStockData = async (ticker: string) => {
+  try {
+    const response = await axiosInst.djangoAxiosInst.get(`/board/stocks/realtime/${ticker}/`);
+    if (response.status === 200) {
+      const data = response.data;
+
+      // 실시간 데이터를 현재 주식 데이터에 업데이트
+      currentStock.value = {
+        id: currentStock.value?.id ?? 0, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
+        ticker: currentStock.value?.ticker ?? ticker, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
+        name: data.name, // 서버에서 받은 데이터의 name 필드
+        date: data.date ?? getFormattedDate(new Date()), // 서버에서 받은 데이터의 date 필드가 없으면 기본값 설정
+        open: data.open,
+        high: data.high,
+        low: data.low,
+        close: data.close,
+        volume: data.volume,
+        updated_at: getFormattedDate(new Date()), // 현재 날짜로 업데이트
+        priceChange: data.priceChange,
+        percentageChange: data.percentageChange
+      };
+      console.log('Current stock:', currentStock.value);
+    } else {
+      console.error('Failed to fetch real-time stock data:', response.data.error);
+    }
+  } catch (error) {
+    console.error('Error fetching real-time stock data:', error);
+  }
+};
 
     const loadChartData = async (ticker: string) => {
       try {
@@ -184,18 +207,17 @@ export default defineComponent({
     const formatPercentage = (value: number): string => {
       return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
     };
+
     const goToHome = () => {
       router.push('/');
     };
 
     const goToStockList = () => {
-      router.push('/stocks/list')
-    }
+      router.push('/stocks/list');
+    };
 
     return {
       currentStock,
-      priceChange,
-      priceChangePercent,
       startDate,
       endDate,
       updateChart,
@@ -210,6 +232,7 @@ export default defineComponent({
   },
 });
 </script>
+
 
 <style scoped>
 
