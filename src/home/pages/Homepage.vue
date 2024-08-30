@@ -213,48 +213,48 @@ export default defineComponent({
     const signOut = async () => {
       if (isLoggedIn.value) {
         await store.commit('accountModule/REQUEST_IS_ACCOUNT_TO_DJANGO', false);
-        localStorage.removeItem('generalLogin');
-        localStorage.removeItem('email')
+        sessionStorage.removeItem('generalLogin');
+        sessionStorage.removeItem('email')
         isLoggedIn.value = false;
       }
       if (isKakaoAuthenticated.value) {
         await store.dispatch('authenticationModule/requestLogoutToDjango');
-        localStorage.removeItem('userToken');
-        localStorage.removeItem('email')
+        sessionStorage.removeItem('userToken');
+        sessionStorage.removeItem('email')
         isKakaoAuthenticated.value = false;
       }
       if (isGoogleAuthenticated.value) {
         await store.dispatch('GoogleAuthenticationModule/requestLogoutToDjango');
-        localStorage.removeItem('googleUserToken');
-        localStorage.removeItem('email')
+        sessionStorage.removeItem('googleUserToken');
+        sessionStorage.removeItem('email')
         isGoogleAuthenticated.value = false;
       }
       if (isNaverAuthenticated.value) {
         await store.dispatch('NaverAuthenticationModule/requestLogoutToDjango');
-        localStorage.removeItem('naverUserToken');
-        localStorage.removeItem('email')
+        sessionStorage.removeItem('naverUserToken');
+        sessionStorage.removeItem('email')
         isNaverAuthenticated.value = false;
       }
       router.push('/');
     };
 
     onMounted(async () => {
-      const generalLogin = localStorage.getItem('generalLogin');
+      const generalLogin = sessionStorage.getItem('generalLogin');
       if (generalLogin) {
         console.log("You already have a generalLogin!");
         isLoggedIn.value = true;
       }
-      const userToken = localStorage.getItem('userToken');
+      const userToken = sessionStorage.getItem('userToken');
       if (userToken) {
         console.log("You already have a userToken!");
         isKakaoAuthenticated.value = true;
       }
-      const googleUserToken = localStorage.getItem('googleUserToken');
+      const googleUserToken = sessionStorage.getItem('googleUserToken');
       if (googleUserToken) {
         console.log("You already have a googleUserToken!");
         isGoogleAuthenticated.value = true;
       }
-      const naverUserToken = localStorage.getItem('naverUserToken');
+      const naverUserToken = sessionStorage.getItem('naverUserToken');
       if (naverUserToken) {
         console.log("You already have a naverUserToken!");
         isNaverAuthenticated.value = true;
@@ -300,25 +300,28 @@ export default defineComponent({
   display: flex;
   flex-direction: column;
   height: 100%;
+  padding: 1rem;
+  justify-content: center;
+  align-items: center;
 }
 
 .chat-box {
   background-color: #212121;
   border-radius: 8px;
-  padding: 20px;
-  height: 700vh;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  max-height: 700px;
+  padding: 1rem;
+  width: 150vh;
+  height: 100vh;
   overflow-y: auto;
-  margin-left: 10%;
-  margin-right: 10%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+  position: relative;
 }
 
 .message {
-  margin-bottom: 10px;
-  padding: 10px;
+  margin-bottom: 1rem;
+  padding: 0.5rem;
   border-radius: 8px;
-  max-width: 60%;
+  max-width: 100%;
   word-wrap: break-word;
 }
 
@@ -336,35 +339,43 @@ export default defineComponent({
   color: #ffffff;
 }
 
+.loading-spinner {
+  display: block;
+  margin: 1rem auto;
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+}
+
 .chat-input-card {
   background-color: #212121;
   color: #ffffff;
-  margin-left: 10%;
-  margin-right: 10%;
+  width: 150vh;
+  margin: 0 auto;
 }
 
 .input-container {
   display: flex;
   align-items: center;
   background-color: #2F2F2F;
+  padding: 0.5rem;
 }
 
 .message-input {
   flex: 1;
+  margin-right: 0.5rem;
 }
 
 .send-button {
-  width: 40vh;
-  height: 40vh;
+  width: 3rem;
+  height: 3rem;
   border-radius: 50%;
   background-color: black;
   color: white;
-  margin-left: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-width: 0;
-  /* Removes default minimum width */
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -373,6 +384,6 @@ export default defineComponent({
 }
 
 .clear-button {
-  margin-left: 8vh;
+  margin-left: 1rem;
 }
 </style>

@@ -35,7 +35,7 @@ const actions: AuthenticationActions = {
 
             const response = await axiosInst.djangoAxiosInst.post(
                 '/oauth/kakao/access-token', { code })
-            localStorage.setItem("accessToken", response.data.accessToken.access_token)
+            sessionStorage.setItem("accessToken", response.data.accessToken.access_token)
         } catch (error) {
             console.log('Access Token 요청 중 문제 발생:', error)
             throw error
@@ -45,7 +45,7 @@ const actions: AuthenticationActions = {
             context: ActionContext<AuthenticationState, any>): Promise<any> {
 
         try {
-            const accessToken = localStorage.getItem("accessToken");
+            const accessToken = sessionStorage.getItem("accessToken");
             const userInfoResponse: AxiosResponse<any> = 
                 await axiosInst.djangoAxiosInst.post(
                     '/oauth/kakao/user-info', 
@@ -72,8 +72,8 @@ const actions: AuthenticationActions = {
 
             console.log('userToken:', response.data.userToken)
 
-            localStorage.removeItem("accessToken")
-            localStorage.setItem("userToken", response.data.userToken)
+            sessionStorage.removeItem("accessToken")
+            sessionStorage.setItem("userToken", response.data.userToken)
             commit(REQUEST_IS_AUTHENTICATED_TO_DJANGO, true);
             return response.data;
         } catch (error) {
@@ -86,7 +86,7 @@ const actions: AuthenticationActions = {
         userToken: string
     ): Promise<void> {
         try {
-            const userToken = localStorage.getItem("userToken")
+            const userToken = sessionStorage.getItem("userToken")
 
             const res = 
                 await axiosInst.djangoAxiosInst.post('/oauth/logout', {
@@ -101,7 +101,7 @@ const actions: AuthenticationActions = {
             console.error('requestPostToFastapi() 중 에러 발생:', error)
             throw error
         }
-        localStorage.removeItem("userToken")
+        sessionStorage.removeItem("userToken")
     }
 };
 

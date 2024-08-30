@@ -36,7 +36,7 @@ const actions: NaverAuthenticationActions = {
 
             const response = await axiosInst.djangoAxiosInst.post(
                 '/naver_oauth/naver/access-token', { code })
-            localStorage.setItem("naverAccessToken", response.data.accessToken.access_token)
+            sessionStorage.setItem("naverAccessToken", response.data.accessToken.access_token)
             } catch (error) {
                 console.log('Access Token 요청 중 문제 발생:', error)
                 throw error
@@ -46,7 +46,7 @@ const actions: NaverAuthenticationActions = {
         context: ActionContext<NaverAuthenticationState, any>): Promise<any> {
             
         try {
-            const naverAccessToken = localStorage.getItem("naverAccessToken");
+            const naverAccessToken = sessionStorage.getItem("naverAccessToken");
             const userInfoResponse: AxiosResponse<any> = 
                 await axiosInst.djangoAxiosInst.post(
                     '/naver_oauth/naver/user_info', 
@@ -73,8 +73,8 @@ const actions: NaverAuthenticationActions = {
 
             console.log('userToken:', response.data.userToken)
 
-            localStorage.removeItem("naverAccessToken")
-            localStorage.setItem("naverUserToken", response.data.userToken)
+            sessionStorage.removeItem("naverAccessToken")
+            sessionStorage.setItem("naverUserToken", response.data.userToken)
             commit(REQUEST_IS_NAVER_AUTHENTICATED_TO_DJANGO, true);
             return response.data;
         } catch (error) {
@@ -87,7 +87,7 @@ const actions: NaverAuthenticationActions = {
         userToken: string
     ): Promise<void> {
         try {
-            const naverUserToken = localStorage.getItem("naverUserToken")
+            const naverUserToken = sessionStorage.getItem("naverUserToken")
 
             const res = 
                 await axiosInst.djangoAxiosInst.post('/naver_oauth/logout', {
@@ -102,7 +102,7 @@ const actions: NaverAuthenticationActions = {
             console.error('requestPostToFastapi() 중 에러 발생:', error)
             throw error
         }
-        localStorage.removeItem("naverUserToken")
+        sessionStorage.removeItem("naverUserToken")
     }
 };
 

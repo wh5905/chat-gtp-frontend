@@ -106,7 +106,7 @@ export default {
   },
   created() {
     // Check if generalLogin exists in localStorage
-    this.isGeneralLogin = !!localStorage.getItem('generalLogin');
+    this.isGeneralLogin = !!sessionStorage.getItem('generalLogin');
   },
   methods: {
     ...mapActions(accountModule, [
@@ -121,7 +121,7 @@ export default {
     async checkPassword() {
       try {
         const isAccountCheck = await this.requestAccountCheckToDjango({
-          email: localStorage.getItem('email'),
+          email: sessionStorage.getItem('email'),
           password: this.currentPassword,
         });
 
@@ -155,13 +155,13 @@ export default {
     },
     onChangePassword() {
       this.requestPasswordModifyToDjango({
-        email: localStorage.getItem('email'),
+        email: sessionStorage.getItem('email'),
         newPassword: this.newPassword,
       })
         .then(() => {
           this.$router.push('/account/login');
-          localStorage.removeItem('generalLogin');
-          localStorage.removeItem('email');
+          sessionStorage.removeItem('generalLogin');
+          sessionStorage.removeItem('email');
           alert('비밀번호가 성공적으로 변경되었습니다. 다시 로그인을 진행해주세요');
         })
         .catch(err => {
@@ -171,7 +171,7 @@ export default {
     onChangeNickname() {
       if (this.newNickname) {
         this.requestNicknameModifyToDjango({
-          email: localStorage.getItem('email'),
+          email: sessionStorage.getItem('email'),
           newNickname: this.newNickname,
         })
           .then(() => {

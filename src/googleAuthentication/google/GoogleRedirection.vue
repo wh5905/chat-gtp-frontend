@@ -33,7 +33,7 @@
       async setRedirectData () {
           const code = this.$route.query.code
           await this.requestAccessTokenToDjangoRedirection({ code })
-          const googleAccessToken = localStorage.getItem("googleAccessToken")
+          const googleAccessToken = sessionStorage.getItem("googleAccessToken")
           const userEmail = await this.requestUserEmailToDjango()
           const userInfo = await this.requestUserInfoToDjango()
           this.email = userEmail.email
@@ -47,14 +47,14 @@
                 await this.requestEmailDuplicationCheckToDjango({ "email": this.email })
             if (isEmailDuplication === true) {
 
-                const googleAccessToken = localStorage.getItem("googleAccessToken");
+                const googleAccessToken = sessionStorage.getItem("googleAccessToken");
                 if (googleAccessToken) {
                     await this.requestAddRedisAccessTokenToDjango({ email:this.email, googleAccessToken });
                     
                 } else {
                     console.error('AccessToken is missing');
                 }
-                localStorage.setItem('email',this.email)
+                sessionStorage.setItem('email',this.email)
                 this.$router.push('/')
             }else {
                 const accountInfo = {
@@ -64,8 +64,9 @@
                     logintype: this.logintype
                 }
                 console.log('전송한 데이터:', accountInfo)
+                const googleAccessToken = sessionStorage.getItem("googleAccessToken");
                 await this.requestCreateNewAccountToDjango(accountInfo)
-
+                await this.requestAddRedisAccessTokenToDjango({ email:this.email, googleAccessToken });
                 router.push('/')
             } 
         }

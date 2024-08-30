@@ -46,7 +46,7 @@ export default {
   },
   async created() {
     try {
-      const email = localStorage.getItem("email");
+      const email = sessionStorage.getItem("email");
       const nickname = await this.requestNicknameToDjango({ email });
       this.email = email;
       this.nickname = nickname.data;
