@@ -42,16 +42,16 @@ export default {
                 await this.requestEmailDuplicationCheckToDjango({ "email": this.email })
             if (isEmailDuplication === true) {
 
-                const accessToken = localStorage.getItem("accessToken");
+                const accessToken = sessionStorage.getItem("accessToken");
                 if (accessToken) {
                     await this.requestAddRedisAccessTokenToDjango({ email:this.email, accessToken });
                     
                 } else {
                     console.error('AccessToken is missing');
                 }
-                localStorage.setItem('email',this.email)
+                sessionStorage.setItem('email',this.email)
                 this.$router.push('/')
-            }else {
+            } else {
                 const accountInfo = {
                     email: this.email,
                     nickname: this.nickname,
@@ -59,8 +59,10 @@ export default {
                     logintype: this.logintype
                 }
                 console.log('전송한 데이터:', accountInfo)
+                const accessToken = sessionStorage.getItem("accessToken");
                 await this.requestCreateNewAccountToDjango(accountInfo)
-
+                await this.requestAddRedisAccessTokenToDjango({ email:this.email, accessToken });
+                sessionStorage.setItem('email',this.email)
                 router.push('/')
             } 
         }

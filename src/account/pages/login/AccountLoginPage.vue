@@ -60,14 +60,14 @@
                       @click="goToKakaoLogin"
                     />
                   </v-col>
-                  <v-col cols="auto" class="icon-col">
+                  <!-- <v-col cols="auto" class="icon-col">
                     <v-img
                       height="40"
                       :src="require('@/assets/images/fixed/google_circle.png')"
                       aspect-ratio="1"
                       @click="goToGoogleLogin"
                     />
-                  </v-col>
+                  </v-col> -->
                   <v-col cols="auto" class="icon-col">
                     <v-img
                       height="40"
@@ -153,8 +153,8 @@ export default {
           this.isEmailValid = true
           this.isPasswordvalid = true
           this.$store.commit(`${accountModule}/REQUEST_IS_ACCOUNT_TO_DJANGO`, true);
-          localStorage.setItem('generalLogin', true)
-          localStorage.setItem('email', this.email)
+          sessionStorage.setItem('generalLogin', true)
+          sessionStorage.setItem('email', this.email)
           router.push('/')
         } else {
           this.isEmailValid = false

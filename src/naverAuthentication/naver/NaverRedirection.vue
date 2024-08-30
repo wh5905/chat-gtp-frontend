@@ -31,7 +31,7 @@
       async setRedirectData () {
           const code = this.$route.query.code
           await this.requestAccessTokenToDjangoRedirection({ code })
-          const NaverAccessToken = localStorage.getItem("naverAccessToken")
+          const NaverAccessToken = sessionStorage.getItem("naverAccessToken")
           const userInfo = await this.requestUserInfoToDjango()
           this.email = userInfo.response.email
           this.nickname = userInfo.response.nickname
@@ -42,14 +42,14 @@
                 await this.requestEmailDuplicationCheckToDjango({ "email": this.email })
             if (isEmailDuplication === true) {
 
-                const naverAccessToken = localStorage.getItem("naverAccessToken");
+                const naverAccessToken = sessionStorage.getItem("naverAccessToken");
                 if (naverAccessToken) {
                     await this.requestAddRedisAccessTokenToDjango({ email:this.email, naverAccessToken });
                     
                 } else {
                     console.error('AccessToken is missing');
                 }
-                localStorage.setItem('email',this.email)
+                sessionStorage.setItem('email',this.email)
                 this.$router.push('/')
             }else {
                 const accountInfo = {
@@ -59,8 +59,9 @@
                     logintype: this.logintype
                 }
                 console.log('전송한 데이터:', accountInfo)
+                const naverAccessToken = sessionStorage.getItem("naverAccessToken");
                 await this.requestCreateNewAccountToDjango(accountInfo)
-
+                await this.requestAddRedisAccessTokenToDjango({ email:this.email, naverAccessToken });
                 router.push('/')
             } 
         }

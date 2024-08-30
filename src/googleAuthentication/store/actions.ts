@@ -38,7 +38,7 @@ const actions: GoogleAuthenticationActions = {
 
             const response = await axiosInst.djangoAxiosInst.post(
                 '/google_oauth/google/access-token', { code })
-            localStorage.setItem("googleAccessToken", response.data.accessToken.access_token)
+            sessionStorage.setItem("googleAccessToken", response.data.accessToken.access_token)
             } catch (error) {
                 console.log('Access Token 요청 중 문제 발생:', error)
                 throw error
@@ -48,7 +48,7 @@ const actions: GoogleAuthenticationActions = {
         context: ActionContext<GoogleAuthenticationState, any>): Promise<any> {
     
         try {
-            const googleAccessToken = localStorage.getItem("googleAccessToken");
+            const googleAccessToken = sessionStorage.getItem("googleAccessToken");
             const userInfoResponse: AxiosResponse<any> = 
                 await axiosInst.djangoAxiosInst.post(
                     '/google_oauth/google/user_info_email', 
@@ -66,7 +66,7 @@ const actions: GoogleAuthenticationActions = {
         context: ActionContext<GoogleAuthenticationState, any>): Promise<any> {
     
         try {
-            const googleAccessToken = localStorage.getItem("googleAccessToken");
+            const googleAccessToken = sessionStorage.getItem("googleAccessToken");
             const userInfoResponse: AxiosResponse<any> = 
                 await axiosInst.djangoAxiosInst.post(
                     '/google_oauth/google/user_info', 
@@ -93,8 +93,8 @@ const actions: GoogleAuthenticationActions = {
 
             console.log('userToken:', response.data.userToken)
 
-            localStorage.removeItem("googleAccessToken")
-            localStorage.setItem("googleUserToken", response.data.userToken)
+            sessionStorage.removeItem("googleAccessToken")
+            sessionStorage.setItem("googleUserToken", response.data.userToken)
             commit(REQUEST_IS_GOOGLE_AUTHENTICATED_TO_DJANGO, true);
             return response.data;
         } catch (error) {
@@ -107,7 +107,7 @@ const actions: GoogleAuthenticationActions = {
         userToken: string
     ): Promise<void> {
         try {
-            const googleUserToken = localStorage.getItem("googleUserToken")
+            const googleUserToken = sessionStorage.getItem("googleUserToken")
 
             const res = 
                 await axiosInst.djangoAxiosInst.post('/google_oauth/logout', {
@@ -122,7 +122,7 @@ const actions: GoogleAuthenticationActions = {
             console.error('requestPostToFastapi() 중 에러 발생:', error)
             throw error
         }
-        localStorage.removeItem("googleUserToken")
+        sessionStorage.removeItem("googleUserToken")
     }
 };
 
