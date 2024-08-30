@@ -191,6 +191,9 @@ export default {
       return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
     },
     formatPercentage(value) {
+      if (value === undefined || value === null) {
+        return '0.00%';
+      }
       return `${value.toFixed(2)}%`;
     },
     toggleFavorite(stockId) {
