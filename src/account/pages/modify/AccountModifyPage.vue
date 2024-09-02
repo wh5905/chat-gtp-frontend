@@ -1,8 +1,9 @@
 <template>
+  <div class="background">
   <v-container class="container">
     <v-app-bar app color=#121212 dark>
       <v-btn icon @click="goToBack">
-        <v-icon>mdi-account</v-icon>
+        <v-icon>mdi-account-arrow-left</v-icon>
       </v-btn>
       <v-spacer></v-spacer>
       <v-btn icon @click="goToHome">
@@ -43,7 +44,7 @@
               :rules="[rules.required, rules.matchPassword]"
             ></v-text-field>
 
-            <v-btn class="mt-4" color="primary" @click="validateAndChangePassword">
+            <v-btn class="mt-4" color=#212121 @click="validateAndChangePassword">
               Change Password
             </v-btn>
 
@@ -58,13 +59,14 @@
             :error-messages="nicknameErrorMessages"
           ></v-text-field>
 
-          <v-btn class="mt-4" color="primary" @click="validateAndChangeNickname">
+          <v-btn class="mt-4" color=#212121 @click="validateAndChangeNickname">
             Change Nickname
           </v-btn>
         </v-form>
       </v-card-text>
     </v-card>
   </v-container>
+</div>
 </template>
 
 <script>
@@ -228,17 +230,23 @@ export default {
 </script>
 
 <style scoped>
+.background{
+  background-color: #212121;
+}
 .container {
   display: flex;
   justify-content: center;
   align-items: center;
   height: 100vh;
+  background-color: #212121;
 }
 
 .change-card {
-  padding: 30px;
+  padding: 10vh;
   border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+  background-color: #292828;
+  color:aliceblue;
 }
 
 .title {

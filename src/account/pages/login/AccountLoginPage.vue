@@ -1,7 +1,6 @@
 <template>
   <div class="background">
-    <v-app-bar app dense>
-      <v-toolbar-title>로그인</v-toolbar-title>
+    <v-app-bar app dense class="navi">
       <v-spacer></v-spacer>
       <v-btn icon @click="goToHome">
         <v-icon>mdi-home</v-icon>
@@ -11,7 +10,7 @@
     <div class="stars"></div>
     <v-container class="overlay">
       <v-row class="justify-center">
-        <v-col class="white-background rounded-box" cols="12" md="6">
+        <v-col class="dark-background rounded-box" cols="12" md="6">
           <v-card-text>
             <v-form ref="form" v-model="formValid" lazy-validation>
               <v-text-field
@@ -22,6 +21,7 @@
                 class="input-field1"
                 outlined
                 :error-messages="emailErrorMessages"
+                color="white"
               />
               <v-text-field
                 v-model="password"
@@ -34,18 +34,19 @@
                 :rules="passwordRules"
                 :error-messages="passwordErrorMessages"
                 class="input-field2"
+                color="white"
               />
               <v-row class="justify-center mt-4">
-                <v-btn class="loginButton" color="primary" @click="checkAccount">
+                <v-btn class="loginButton" color="black" @click="checkAccount">
                   로그인
                 </v-btn>
-                <v-btn class="register" outlined color="secondary" @click="accountRegister">
+                <v-btn class="register" outlined color=#212121 @click="accountRegister">
                   회원가입
                 </v-btn>
               </v-row>
             </v-form>
           </v-card-text>
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-4" color="grey"></v-divider>
           <v-row class="justify-center content-center">
             <v-col cols="12">
               <div class="text-center sub-text-2">
@@ -173,12 +174,14 @@ export default {
 <style scoped>
 .background {
   position: relative;
-  background: url('@/assets/images/fixed/potato.jpg') no-repeat center center fixed;
   background-size: cover;
   overflow: hidden;
   height: 100vh;
+  background-color: #212121;
 }
-
+.navi{
+  background-color: #212121;
+}
 .overlay {
   position: absolute;
   top: 0;
@@ -200,11 +203,11 @@ export default {
   top: -50%;
   left: -50%;
   z-index: 1;
-  animation: twinkling 60s infinite;
+  animation: twinkling 6s infinite;
 }
 
-.white-background {
-  background-color: white;
+.dark-background {
+  background-color: #212121;
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
@@ -213,7 +216,7 @@ export default {
 }
 
 .rounded-box {
-  border-radius: 15px;
+  border-radius: 20px;
 }
 
 .content-center {
@@ -234,22 +237,25 @@ export default {
 
 .text-center {
   text-align: center;
+  color: white;
 }
 
 .sub-text-2 {
   font-size: 20px;
   font-weight: bold;
-  color: black;
+  color: white;
   font-family: "Jua", sans-serif;
 }
 
 .input-field1 {
   width: 92%;
   margin-bottom: 15px;
+  color: white;
 }
 .input-field2 {
   width: 100%;
   margin-bottom: 15px;
+  color: white;
 }
 
 .loginButton {
@@ -257,6 +263,8 @@ export default {
   padding: 8px 20px;
   font-size: 16px;
   font-weight: bold;
+  background-color: black;
+  color: white;
 }
 
 .register {
@@ -264,5 +272,6 @@ export default {
   padding: 8px 20px;
   font-size: 16px;
   font-weight: bold;
+  color: white;
 }
 </style>
