@@ -1,38 +1,57 @@
-import { MutationTree } from "vuex";
-import { StockState, StockData } from "./states";
+import { MutationTree } from 'vuex';
+import { StockState, StockData } from './states';
+import {
+  SET_STOCKS,
+  SET_CURRENT_STOCK,
+  SET_CURRENT_PAGE,
+  SET_TOTAL_PAGES,
+  SET_PAGE_SIZE,
+  SET_LOADING,
+  SET_INITIAL_LOADING,
+  SET_ERROR,
+  SET_FAVORITES
+} from './mutation-types';
 
 export interface StockMutations extends MutationTree<StockState> {
-  SET_STOCKS(state: StockState, stocks: StockData[]): void;
-  SET_LOADING(state: StockState, loading: boolean): void;
-  SET_ERROR(state: StockState, error: string | null): void;
-  SET_CURRENT_PAGE(state: StockState, page: number): void;  // 현재 페이지 설정
-  SET_TOTAL_PAGES(state: StockState, totalPages: number): void;  // 총 페이지 수 설정
-  SET_PAGE_SIZE(state: StockState, size: number): void;  // 페이지당 항목 수 설정
-  SET_CURRENT_STOCK(state: StockState, stock: StockData | undefined): void;  // 현재 선택된 주식 설정
+  [SET_STOCKS](state: StockState, stocks: StockData[]): void;
+  [SET_CURRENT_STOCK](state: StockState, stock: StockData | null): void;
+  [SET_CURRENT_PAGE](state: StockState, page: number): void;
+  [SET_TOTAL_PAGES](state: StockState, totalPages: number): void;
+  [SET_PAGE_SIZE](state: StockState, pageSize: number): void;
+  [SET_LOADING](state: StockState, loading: boolean): void;
+  [SET_INITIAL_LOADING](state: StockState, initialLoading: boolean): void;
+  [SET_ERROR](state: StockState, error: string | null): void;
+  [SET_FAVORITES](state: StockState, favorites: string[]): void;
 }
 
-const mutations: StockMutations = {
-  SET_STOCKS(state, stocks) {
+export const mutations: StockMutations = {
+  [SET_STOCKS](state, stocks: StockData[]) {
     state.stocks = stocks;
   },
-  SET_LOADING(state, loading) {
-    state.loading = loading;
+  [SET_CURRENT_STOCK](state, stock: StockData | null) {
+    state.currentStock = stock;
   },
-  SET_ERROR(state, error) {
-    state.error = error;
-  },
-  SET_CURRENT_PAGE(state, page) {
+  [SET_CURRENT_PAGE](state, page: number) {
     state.currentPage = page;
   },
-  SET_TOTAL_PAGES(state, totalPages) {
+  [SET_TOTAL_PAGES](state, totalPages: number) {
     state.totalPages = totalPages;
   },
-  SET_PAGE_SIZE(state, size) {
-    state.pageSize = size;
+  [SET_PAGE_SIZE](state, pageSize: number) {
+    state.pageSize = pageSize;
   },
-  SET_CURRENT_STOCK(state, stock) {
-    state.currentStock = stock;
-  }
-}
+  [SET_LOADING](state, loading: boolean) {
+    state.loading = loading;
+  },
+  [SET_INITIAL_LOADING](state, initialLoading: boolean) {
+    state.initialLoading = initialLoading;
+  },
+  [SET_ERROR](state, error: string | null) {
+    state.error = error;
+  },
+  [SET_FAVORITES](state, favorites: string[]) {
+    state.favorites = favorites;
+  },
+};
 
 export default mutations;

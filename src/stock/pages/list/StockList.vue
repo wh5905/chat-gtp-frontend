@@ -44,41 +44,47 @@
         </div>
 
         <div v-else class="list-group">
-          <router-link
+          <div
             v-for="stock in stocks"
             :key="stock.id"
-            :to="{ name: 'stock', params: { ticker: stock.ticker } }"
             class="list-group-item list-group-item-action d-flex justify-content-between align-items-center"
           >
-            <div>
-              <h5 class="mb-1">{{ stock.name }}</h5>
-              <small class="text-muted">{{ stock.ticker }}</small>
-            </div>
-            <div class="d-flex align-items-center">
-              <div class="text-end me-3">
-                <span class="fw-bold">{{ formatCurrency(stock.close) }}</span>
-                <br />
-                <span
-                  :class="{
-                    'text-danger': stock.priceChange > 0,
-                    'text-primary': stock.priceChange < 0
-                  }"
-                >
-                  {{ formatCurrency(stock.priceChange) }} 
-                  <span v-if="stock.priceChange !== 0">
-                    ({{ formatPercentage(stock.percentageChange) }})
-                  </span>
-                </span>
+            <router-link
+              :to="{ name: 'stock', params: { ticker: stock.ticker } }"
+              class="d-flex justify-content-between align-items-center flex-grow-1 text-decoration-none text-white"
+            >
+              <div>
+                <h5 class="mb-1">{{ stock.name }}</h5>
+                <small class="text-muted custom-small">{{ stock.ticker }}</small>
               </div>
-              <button
-                class="btn btn-outline-secondary btn-sm favorite-button"
-                @click.stop="toggleFavorite(stock.id)"
-                :class="{ 'favorite': favorites.includes(stock.id) }"
-              >
-                <i class="fas fa-star"></i>
-              </button>
-            </div>
-          </router-link>
+              <div class="d-flex align-items-center">
+                <div class="text-end me-3">
+                  <span class="fw-bold">{{ formatCurrency(stock.close) }}</span>
+                  <br />
+                  <span
+                    :class="{
+                      'text-danger': stock.priceChange > 0,
+                      'text-primary': stock.priceChange < 0
+                    }"
+                  >
+                    {{ formatCurrency(stock.priceChange) }} 
+                    <span v-if="stock.priceChange !== 0">
+                      ({{ formatPercentage(stock.percentageChange) }})
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </router-link>
+            <button
+              v-if="isLoggedIn"
+              class="btn btn-outline-secondary btn-sm favorite-button"
+              @click.stop="toggleFavorite(stock)"
+            >
+              <!-- 즐겨찾기된 상태에서는 채워진 별, 아닌 경우 밝은 색 빈 별 아이콘 -->
+              <i v-if="stock.isFavorite" class="fas fa-star text-warning"></i>
+              <i v-else class="far fa-star"></i> <!-- 빈 별 아이콘을 흰색으로 -->
+            </button>
+          </div>
         </div>
         <div v-if="stocks.length === 0 && !loading && !initialLoading" class="text-center mt-4 text-white">
           <p>검색한 종목이 없습니다.</p>
@@ -119,9 +125,9 @@ export default {
       totalItems: 0,
       totalPages: 0,
       searchQuery: '',
-      favorites: [],
       loading: false,
       initialLoading: true, // 페이지 초기 로딩 시 사용
+      isLoggedIn: false, // 로그인 상태를 저장
     };
   },
   computed: {
@@ -138,12 +144,11 @@ export default {
       let end = totalPagesToShow;
 
       if (currentPage > 3) {
-        start = currentPage - 2;
-        end = currentPage + 2;
+        start = Math.max(currentPage - 2, 1); // start는 1보다 작을 수 없음
+        end = Math.min(currentPage + 2, totalPages); // end는 totalPages를 초과할 수 없음
 
-        if (end > totalPages) {
-          start = totalPages - 4;
-          end = totalPages;
+        if (end - start + 1 < totalPagesToShow) {
+          start = Math.max(end - totalPagesToShow + 1, 1); // 범위 조정
         }
       }
 
@@ -155,13 +160,14 @@ export default {
       if (!this.initialLoading) {
         this.loading = true;
       }
-
+      const email = sessionStorage.getItem('email');
       try {
         const response = await axiosInst.djangoAxiosInst.get('/board/stocks', {
           params: {
             page: this.currentPage,
             size: this.pageSize,
-            search: this.searchQuery
+            search: this.searchQuery,
+            email: email
           }
         });
 
@@ -174,6 +180,32 @@ export default {
       } finally {
         this.loading = false;
         this.initialLoading = false; // 초기 로딩이 끝났으므로 false로 설정
+      }
+    },
+    async toggleFavorite(stock) {
+      console.log('Toggling favorite for ticker:', stock.ticker); // 로그 추가
+      console.log('Current favorites:', this.stocks); // 로그 추가
+
+      const url = stock.isFavorite ? '/favorite_stocks/favorite/remove' : '/favorite_stocks/favorite/add';
+      const email = sessionStorage.getItem('email');
+
+      if (!email) {
+        console.error('User token not found in session storage');
+        return;
+      }
+
+      try {
+        const response = await axiosInst.djangoAxiosInst.post(url, {
+          email: email,
+          ticker: stock.ticker
+        });
+
+        // 서버로부터 업데이트된 즐겨찾기 상태를 받아옵니다.
+        console.log('Server response:', response.data); // 서버 응답 로그 추가
+        stock.isFavorite = !stock.isFavorite; // 즐겨찾기 상태를 토글
+        console.log('Updated stock:', stock); // 로그 추가
+      } catch (error) {
+        console.error(`Error ${stock.isFavorite ? 'removing from' : 'adding to'} favorites:`, error);
       }
     },
     changePage(page) {
@@ -196,26 +228,22 @@ export default {
       }
       return `${value.toFixed(2)}%`;
     },
-    toggleFavorite(stockId) {
-      const index = this.favorites.indexOf(stockId);
-      if (index === -1) {
-        this.favorites.push(stockId);
-      } else {
-        this.favorites.splice(index, 1);
-      }
-      // TODO: Implement API call to save favorites
-    },
     goToHome() {
       this.$router.push("/");
+    },
+    checkLoginStatus() {
+      const email = sessionStorage.getItem('email');
+      this.isLoggedIn = !!email; // email이 존재하면 true, 그렇지 않으면 false
     }
   },
   mounted() {
+    this.checkLoginStatus(); // 컴포넌트가 마운트될 때 로그인 상태를 확인
     this.fetchStocks();
     this.loading = this.currentPage === 1;
+    console.log('Mounted: stocks initialized', this.stocks); // 로그 추가
   }
 };
 </script>
-
 
 <style scoped>
 .container-fluid {
@@ -236,6 +264,7 @@ export default {
   border: none;
   color: #000000 !important; /* 텍스트 색상을 검정으로 설정하고 우선순위를 높임 */
 }
+
 .text-center {
   margin-top: 20px;
   color: #ffffff;
@@ -271,6 +300,13 @@ export default {
   border-color: gold;
 }
 
+.favorite-button .fa-star-o {
+  color: #dadada; /* 빈 별 아이콘 색상 */
+}
+.favorite-button .far.fa-star {
+  color: #a09e9e; /* 빈 별 아이콘을 흰색으로 */
+}
+
 .favorite-button:hover {
   transform: scale(1.1);
 }
@@ -299,25 +335,35 @@ export default {
   justify-content: space-between;
   align-items: center;
 }
+
 .skeleton-text {
   background-color: #444;
   height: 15px;
   margin-bottom: 10px;
   border-radius: 5px;
 }
+
 .skeleton-title {
   width: 150px;
 }
+
 .skeleton-subtitle {
   width: 100px;
 }
+
 .skeleton-change {
   width: 80px;
 }
+
 .skeleton-button {
   background-color: #444;
   width: 30px;
   height: 30px;
   border-radius: 50%;
+}
+
+.custom-small {
+  font-size: 0.7rem !important; /* 더 작은 글씨 크기 */
+  color: #a3a3a3 !important; /* 회색 */
 }
 </style>
