@@ -45,9 +45,9 @@
     <v-app-bar app flat color="#212121">
       <v-app-bar-nav-icon @click="toggleDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>ChatGTP</v-toolbar-title>
-      
+
       <v-spacer></v-spacer>
-      
+
       <v-btn v-if="isAuthenticated" text @click="goToMyPage" class="btn-text">
         <v-icon right>mdi-account</v-icon>
         <span>My Page</span>
@@ -67,36 +67,55 @@
     <!-- Main Content -->
     <v-main>
       <v-container class="main-container" fluid>
-        <div class="chat-container">
-          <div class="chat-box" ref="chatDisplay">
-            <div 
-              v-for="(message, index) in messages" 
-              :key="index" 
-              :class="['message', message.isUser ? 'user-message' : 'bot-message']"
-            >
-              <p>{{ message.text }}</p>
+        <v-row class="fill-height">
+          <!-- 첫 번째 1/3 구역 -->
+          <v-col cols="2">
+            <div class="section-1">
+              <p>첫 번째 섹션 내용</p>
             </div>
-          </div>
+          </v-col>
 
-          <v-card class="chat-input-card">
-            <v-card-text>
-              <div class="input-container">
-                <v-text-field 
-                  v-model="userInput" 
-                  label="원하시는 주식 종목 이름을 입력해주세요" 
-                  outlined 
-                  dense 
-                  @keyup.enter="sendMessage" 
-                  class="message-input"
-                ></v-text-field>
-                <v-btn class="fastSearch" @click="toggleList" color="primary">
-                  {{ isListVisible ? '리스트 숨기기' : '리스트 보기' }}
-                </v-btn>
-                <!-- 리스트 항목들을 v-for로 출력 -->
+          <!-- 두 번째 1/3 구역 (채팅) -->
+          <v-col cols="8" class="d-flex flex-column fill-height">
+            <div class="chat-container flex-grow-1">
+              <div class="chat-box" ref="chatDisplay">
+                <div 
+                  v-for="(message, index) in messages" 
+                  :key="index" 
+                  :class="['message', message.isUser ? 'user-message' : 'bot-message']"
+                >
+                  <p>{{ message.text }}</p>
+                </div>
               </div>
-            </v-card-text>
-          </v-card>
-        </div>
+
+              <v-card class="chat-input-card">
+                <v-card-text>
+                  <div class="input-container">
+                    <v-text-field 
+                      v-model="userInput" 
+                      label="원하시는 주식 종목 이름을 입력해주세요" 
+                      outlined 
+                      dense 
+                      @keyup.enter="sendMessage" 
+                      class="message-input"
+                    ></v-text-field>
+                    <v-btn class="fastSearch" @click="toggleList" color="primary">
+                      {{ isListVisible ? '리스트 숨기기' : '리스트 보기' }}
+                    </v-btn>
+                    <!-- 리스트 항목들을 v-for로 출력 -->
+                  </div>
+                </v-card-text>
+              </v-card>
+            </div>
+          </v-col>
+
+          <!-- 세 번째 1/3 구역 -->
+          <v-col cols="2">
+            <div class="section-3">
+              <p>뉴스 공간</p>
+            </div>
+          </v-col>
+        </v-row>
       </v-container>
 
       <!-- Dialog for Authentication -->
@@ -130,10 +149,9 @@
                 </v-list-item-content>
               </v-list-item>
             </v-container>
-            </v-card-text>
+          </v-card-text>
         </v-card>
       </v-dialog>
-
     </v-main>
   </v-app>
 </template>
@@ -367,32 +385,32 @@ export default defineComponent({
 }
 
 .main-container {
-  height: calc(100vh - 64px);
-  padding: 0;
+  height: 100%;
+  background-color: #212121;
 }
-.fastSearch{
-  justify-items: end;
+
+.fill-height {
+  height: 100%;
 }
+
 .chat-container {
   background-color: #212121;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
   height: 100%;
   padding: 1rem;
-  justify-content: center;
-  align-items: center;
 }
 
 .chat-box {
   background-color: #212121;
   border-radius: 8px;
   padding: 1rem;
-  width: 120vh; /* 가로 길이 조정 */
-  height: 70vh; /* 높이 조정 (필요하면) */
+  width: 100%;
+  height: 70vh;
   overflow-y: auto;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-bottom: 1rem;
-  position: relative;
 }
 
 .message {
@@ -417,56 +435,21 @@ export default defineComponent({
   color: #ffffff;
 }
 
-.loading-spinner {
-  display: block;
-  margin: 1rem auto;
-  position: absolute;
-  left: 50%;
-  bottom: 0;
-  transform: translateX(-50%);
-}
-
 .chat-input-card {
   background-color: #212121;
   color: #ffffff;
-  width: 120vh; /* 가로 길이 조정 */
-  margin: 0 auto;
 }
 
 .input-container {
   display: flex;
   align-items: center;
-  width: 100vh;
 }
 
 .message-input {
   flex: 1;
-  margin-right: 10vh;
-  margin-left: 10vh;
-  height: 8vh;
 }
 
-.send-button {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
-  background-color: black;
-  color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-}
-
-.send-button:hover {
-  background-color: #333;
-}
-
-.clear-button {
-  margin-left: 1rem;
-}
-
-.clickable-item {
-  cursor: pointer; /* 클릭 가능한 항목 스타일 */
+.fastSearch {
+  justify-items: end;
 }
 </style>
