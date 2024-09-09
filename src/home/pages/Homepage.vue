@@ -70,10 +70,26 @@
         <v-row class="fill-height">
           <!-- 첫 번째 1/3 구역 -->
           <v-col cols="2">
-            <div class="section-1">
-              <p>첫 번째 섹션 내용</p>
-            </div>
-          </v-col>
+      <div class="section-1">
+        <p class="yellow-text">즐겨찾기</p>
+        <div v-for="(stock, index) in visibleStocks" :key="index" class="favorite-stock">
+          <v-row>
+            <v-col cols="6">
+              <h3 class="white-text">{{ stock.name }}</h3>
+            </v-col>
+            <v-col cols="6">
+              <p class="white-text">{{ formatCurrency(stock.close) }}</p>
+              <p :class="{ 'up': stock.priceChange > 0, 'down': stock.priceChange < 0 }">
+                {{ formatCurrency(stock.priceChange) }} ({{ formatPercentage(stock.percentageChange) }})
+              </p>
+            </v-col>
+          </v-row>
+        </div>
+        <v-btn icon @click="toggleShowAll" style="width: 30px; height: 30px; min-width: 24px;">
+          <v-icon style="font-size: 16px;">{{ showAll ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+        </v-btn>
+      </div>
+    </v-col>
 
           <!-- 두 번째 1/3 구역 (채팅) -->
           <v-col cols="8" class="d-flex flex-column fill-height">
@@ -160,6 +176,7 @@
 import { defineComponent, ref, onMounted, computed, nextTick } from 'vue';
 import router from '@/router';
 import { useStore } from 'vuex';
+import axiosInst from "@/utility/axiosInstance";
 
 export default defineComponent({
   name: 'HomeView',
@@ -177,6 +194,9 @@ export default defineComponent({
     const isNaverAuthenticated = ref(false);
     const favoriteStockList = ref<string[][]>([]) // 각 항목을 개별화된 리스트로 설정
     const isEmailStored = ref(false);
+    const favoriteStockListDetail = ref([]);
+    const showAll = ref(false);
+
 
     const isAuthenticated = computed(() => {
       return (
@@ -291,6 +311,7 @@ export default defineComponent({
       if (naverUserToken) {
         isNaverAuthenticated.value = true;
       }
+      await loadFavoriteStocks();
     });
     const isListVisible = ref(false);
 
@@ -350,6 +371,45 @@ export default defineComponent({
       sendMessage();
       showStockDialog.value = false;
     }
+    const loadFavoriteStocks = async () => {
+      try {
+        const email = sessionStorage.getItem('email');
+        const response = await axiosInst.djangoAxiosInst.post('/board/favorite-list-detail', { email });
+        if (response.status === 200) {
+          const stocks = response.data.stocks;
+          const formattedStocks = stocks.map((stock: any) => ({
+            name: stock.name, // 이름 사용
+            close: stock.close || 0,
+            priceChange: stock.priceChange || 0,
+            percentageChange: stock.percentageChange || 0
+          }));
+          favoriteStockListDetail.value = formattedStocks;
+          console.log('Fetched favorite stocks:', favoriteStockListDetail.value);
+        } else {
+          console.error('Failed to fetch favorite stocks:', response.data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching favorite stocks:', error);
+      }
+    };
+
+    const formatCurrency = (value: number): string => {
+      return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
+    };
+
+    const formatPercentage = (value: number | undefined): string => {
+      if (value === undefined || isNaN(value)) {
+        return '0.00%';
+      }
+      return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
+    };
+    const toggleShowAll = () => {
+      showAll.value = !showAll.value;
+    };
+
+    const visibleStocks = computed(() => {
+      return showAll.value ? favoriteStockListDetail.value : favoriteStockListDetail.value.slice(0, 2);
+    });
 
     return {
       userInput,
@@ -373,6 +433,12 @@ export default defineComponent({
       toggleList,
       showStockDialog,
       pushMessage,
+      favoriteStockListDetail,
+      formatCurrency,
+      formatPercentage,
+      showAll,
+      toggleShowAll,
+      visibleStocks
     };
   }
 });
@@ -451,5 +517,34 @@ export default defineComponent({
 
 .fastSearch {
   justify-items: end;
+}
+.favorite-stock {
+  margin-bottom: 10px;
+}
+
+.favorite-stock h3 {
+  margin: 0;
+  font-size: 18px;
+  color: #e0e0e0;
+}
+
+.favorite-stock p {
+  margin: 0;
+  font-size: 16px;
+}
+
+.up {
+  color: #f44336; /* 상승 텍스트 색상 */
+}
+
+.down {
+  color: #401aff; /* 하락 텍스트 색상 */
+}
+.yellow-text {
+  color: #fbffc4;
+  font-weight: bold;
+}
+.white-text {
+  color: #ffffff;
 }
 </style>
