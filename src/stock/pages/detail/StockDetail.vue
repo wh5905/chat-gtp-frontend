@@ -50,6 +50,7 @@
      
      <label for="endDate">종료 날짜:</label>
      <input type="date" id="endDate" v-model="endDate" @change="updateChart">
+     <v-btn color="primary" @click="openOrderPopup">주문하기</v-btn>
    </div>
  
      <div class="stock-chart">
@@ -61,178 +62,260 @@
        <p><strong>날짜:</strong> {{ formatDate(currentStock.date) }}</p>
        <p><strong>최종 업데이트:</strong> {{ formatDate(currentStock.updated_at) }}</p>
      </div>
+
+     <v-dialog v-model="isOrderPopupOpen" max-width="500px">
+      <v-card>
+        <v-card-title>
+          <span class="headline">주문하기</span>
+        </v-card-title>
+        <v-card-text>
+          <div>
+            <p><strong>종목:</strong> {{ currentStock.name }}</p>
+            <p><strong>티커:</strong> {{ currentStock.ticker }}</p>
+            <p><strong>종가:</strong> {{ formatCurrency(currentStock.close) }}</p>
+          </div>
+          <v-divider></v-divider>
+          <v-form>
+            <v-radio-group v-model="orderType" row>
+              <v-radio label="매수" value="buy"></v-radio>
+              <v-radio label="매도" value="sell"></v-radio>
+            </v-radio-group>
+            <v-text-field v-model="orderPrice" label="주문 가격" type="number" step="100"></v-text-field>
+            <v-text-field v-model="orderQuantity" label="수량" type="number"></v-text-field>
+          </v-form>
+          <!-- 주문 메시지 표시 -->
+          <v-alert v-if="orderMessage" type="info">{{ orderMessage }}</v-alert>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="isOrderPopupOpen = false">취소</v-btn>
+          <v-btn color="blue darken-1" text @click="submitOrder">확인</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
    </div>
+   
+
+
+
  </template>
  
  <script lang="ts">
- import { defineComponent, computed, onMounted, ref, Ref } from 'vue';
- import { useStore } from 'vuex';
- import { useRoute } from 'vue-router';
- import { StockData } from '@/stock/store/states';
- import Chart, { ChartConfiguration } from 'chart.js/auto';
- import axiosInst from "@/utility/axiosInstance";
- import router from '@/router';
- 
- export default defineComponent({
-   name: 'StockDetail',
-   setup() {
-     const store = useStore();
-     const route = useRoute();
- 
-     const getFormattedDate = (date: Date): string => {
-       return date.toISOString().split('T')[0];
-     };
- 
-     const currentStock = ref<StockData | null>(null);
- 
-     const startDate = ref<string>(getFormattedDate(new Date(new Date().setDate(new Date().getDate() - 14))));
-     const endDate = ref<string>(getFormattedDate(new Date()));
- 
-     const chartInstance: Ref<Chart | null> = ref(null);
- 
-     onMounted(async () => {
-       const ticker = route.params.ticker as string;
-       await fetchRealtimeStockData(ticker); // 실시간 데이터 가져오기
-       // await store.dispatch('stock/fetchStockDetail', ticker);
-       loadChartData(ticker);
-     });
- 
-     const fetchRealtimeStockData = async (ticker: string) => {
-   try {
-     const response = await axiosInst.djangoAxiosInst.get(`/board/stocks/realtime/${ticker}/`);
-     if (response.status === 200) {
-       const data = response.data;
- 
-       // 실시간 데이터를 현재 주식 데이터에 업데이트
-       currentStock.value = {
-         id: currentStock.value?.id ?? 0, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
-         ticker: currentStock.value?.ticker ?? ticker, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
-         name: data.name, // 서버에서 받은 데이터의 name 필드
-         date: data.date ?? getFormattedDate(new Date()), // 서버에서 받은 데이터의 date 필드가 없으면 기본값 설정
-         open: data.open,
-         high: data.high,
-         low: data.low,
-         close: data.close,
-         favorite: currentStock.value?.favorite ?? false, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
-         volume: data.volume,
-         updated_at: getFormattedDate(new Date()), // 현재 날짜로 업데이트
-         priceChange: data.priceChange,
-         percentageChange: data.percentageChange
-       };
-       console.log('Current stock:', currentStock.value);
-     } else {
-       console.error('Failed to fetch real-time stock data:', response.data.error);
-     }
-   } catch (error) {
-     console.error('Error fetching real-time stock data:', error);
-   }
- };
- 
-     const loadChartData = async (ticker: string) => {
-       try {
-         const response = await axiosInst.djangoAxiosInst.get(`/board/stock/${ticker}/${startDate.value}/${endDate.value}/`);
-         const chartData = response.data;
-         console.log('Chart data:', chartData);
-         renderChart(chartData);
-       } catch (error) {
-         console.error('Error fetching chart data:', error);
-       }
-     };
- 
-     const updateChart = () => {
-       const ticker = route.params.ticker as string;
-       loadChartData(ticker);
-     };
- 
-     const renderChart = (data: { 날짜: string; 종가: number }[]) => {
-       const canvasElement = document.getElementById('stockChart') as HTMLCanvasElement | null;
- 
-       if (chartInstance.value) {
-         chartInstance.value.destroy(); // 기존 차트를 파괴
-       }
- 
-       if (canvasElement) {
-         const ctx = canvasElement.getContext('2d') as CanvasRenderingContext2D | null;
-         if (ctx) {
-           const labels = data.map((item) => item['날짜']);
-           const prices = data.map((item) => item['종가']);
- 
-           const config: ChartConfiguration<'line'> = {
-             type: 'line',
-             data: {
-               labels: labels,
-               datasets: [
-                 {
-                   label: '종가',
-                   data: prices,
-                   borderColor: '#f44336',
-                   backgroundColor: 'rgba(244, 67, 54, 0.2)',
-                   fill: true,
-                 },
-               ],
-             },
-             options: {
-               responsive: true,
-               scales: {
-                 x: { display: true },
-                 y: { display: true },
-               },
-             },
-           };
- 
-           chartInstance.value = new Chart(ctx, config);
-         } else {
-           console.error('Failed to get 2D context');
-         }
-       } else {
-         console.error('Failed to find the canvas element.');
-       }
-     };
- 
-     const formatDate = (dateString: string): string => {
-       return new Date(dateString).toLocaleDateString('ko-KR');
-     };
- 
-     const formatCurrency = (value: number): string => {
-       return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
-     };
- 
-     const formatNumber = (value: number): string => {
-       return new Intl.NumberFormat('ko-KR').format(value);
-     };
- 
-     const formatChange = (value: number): string => {
-       return (value > 0 ? '+' : '') + formatCurrency(Math.abs(value));
-     };
- 
-     const formatPercentage = (value: number): string => {
-       return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
-     };
- 
-     const goToHome = () => {
-       router.push('/');
-     };
- 
-     const goToStockList = () => {
-       router.push('/stocks/list');
-     };
- 
-     return {
-       currentStock,
-       startDate,
-       endDate,
-       updateChart,
-       formatDate,
-       formatCurrency,
-       formatNumber,
-       formatChange,
-       formatPercentage,
-       goToStockList,
-       goToHome,
-     };
-   },
- });
- </script>
+import { defineComponent, computed, onMounted, ref, Ref } from 'vue';
+import { useStore } from 'vuex';
+import { useRoute } from 'vue-router';
+import { StockData } from '@/stock/store/states';
+import Chart, { ChartConfiguration } from 'chart.js/auto';
+import axiosInst from "@/utility/axiosInstance";
+import router from '@/router';
+
+export default defineComponent({
+  name: 'StockDetail',
+  setup() {
+    const store = useStore();
+    const route = useRoute();
+
+    const getFormattedDate = (date: Date): string => {
+      return date.toISOString().split('T')[0];
+    };
+
+    const currentStock = ref<StockData | null>(null);
+    const startDate = ref<string>(getFormattedDate(new Date(new Date().setDate(new Date().getDate() - 14))));
+    const endDate = ref<string>(getFormattedDate(new Date()));
+    const chartInstance: Ref<Chart | null> = ref(null);
+
+    const isOrderPopupOpen = ref(false);
+    const orderType = ref('buy');
+    const orderPrice = ref<number | null>(null);
+    const orderQuantity = ref<number | null>(null);
+    const orderMessage = ref<string | null>(null);
+
+    const isLoggedIn = computed(() => !!sessionStorage.getItem('email'));
+
+    onMounted(async () => {
+      const ticker = route.params.ticker as string;
+      await fetchRealtimeStockData(ticker); // 실시간 데이터 가져오기
+      loadChartData(ticker);
+    });
+
+    const fetchRealtimeStockData = async (ticker: string) => {
+      try {
+        const response = await axiosInst.djangoAxiosInst.get(`/board/stocks/realtime/${ticker}/`);
+        if (response.status === 200) {
+          const data = response.data;
+
+          // 실시간 데이터를 현재 주식 데이터에 업데이트
+          currentStock.value = {
+            id: currentStock.value?.id ?? 0, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
+            ticker: currentStock.value?.ticker ?? ticker, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
+            name: data.name, // 서버에서 받은 데이터의 name 필드
+            date: data.date ?? getFormattedDate(new Date()), // 서버에서 받은 데이터의 date 필드가 없으면 기본값 설정
+            open: data.open,
+            high: data.high,
+            low: data.low,
+            close: data.close,
+            favorite: currentStock.value?.favorite ?? false, // 기존 데이터가 있으면 유지, 없으면 기본값 설정
+            volume: data.volume,
+            updated_at: getFormattedDate(new Date()), // 현재 날짜로 업데이트
+            priceChange: data.priceChange,
+            percentageChange: data.percentageChange
+          };
+
+          // 주문 가격을 종가로 설정
+          orderPrice.value = currentStock.value.close;
+
+          console.log('Current stock:', currentStock.value);
+        } else {
+          console.error('Failed to fetch real-time stock data:', response.data.error);
+        }
+      } catch (error) {
+        console.error('Error fetching real-time stock data:', error);
+      }
+    };
+
+    const loadChartData = async (ticker: string) => {
+      try {
+        const response = await axiosInst.djangoAxiosInst.get(`/board/stock/${ticker}/${startDate.value}/${endDate.value}/`);
+        const chartData = response.data;
+        console.log('Chart data:', chartData);
+        renderChart(chartData);
+      } catch (error) {
+        console.error('Error fetching chart data:', error);
+      }
+    };
+
+    const updateChart = () => {
+      const ticker = route.params.ticker as string;
+      loadChartData(ticker);
+    };
+
+    const renderChart = (data: { 날짜: string; 종가: number }[]) => {
+      const canvasElement = document.getElementById('stockChart') as HTMLCanvasElement | null;
+
+      if (chartInstance.value) {
+        chartInstance.value.destroy(); // 기존 차트를 파괴
+      }
+
+      if (canvasElement) {
+        const ctx = canvasElement.getContext('2d') as CanvasRenderingContext2D | null;
+        if (ctx) {
+          const labels = data.map((item) => item['날짜']);
+          const prices = data.map((item) => item['종가']);
+
+          const config: ChartConfiguration<'line'> = {
+            type: 'line',
+            data: {
+              labels: labels,
+              datasets: [
+                {
+                  label: '종가',
+                  data: prices,
+                  borderColor: '#f44336',
+                  backgroundColor: 'rgba(244, 67, 54, 0.2)',
+                  fill: true,
+                },
+              ],
+            },
+            options: {
+              responsive: true,
+              scales: {
+                x: { display: true },
+                y: { display: true },
+              },
+            },
+          };
+
+          chartInstance.value = new Chart(ctx, config);
+        } else {
+          console.error('Failed to get 2D context');
+        }
+      } else {
+        console.error('Failed to find the canvas element.');
+      }
+    };
+
+    const formatDate = (dateString: string): string => {
+      return new Date(dateString).toLocaleDateString('ko-KR');
+    };
+
+    const formatCurrency = (value: number): string => {
+      return new Intl.NumberFormat('ko-KR', { style: 'currency', currency: 'KRW' }).format(value);
+    };
+
+    const formatNumber = (value: number): string => {
+      return new Intl.NumberFormat('ko-KR').format(value);
+    };
+
+    const formatChange = (value: number): string => {
+      return (value > 0 ? '+' : '') + formatCurrency(Math.abs(value));
+    };
+
+    const formatPercentage = (value: number): string => {
+      return (value > 0 ? '+' : '') + value.toFixed(2) + '%';
+    };
+
+    const goToHome = () => {
+      router.push('/');
+    };
+
+    const goToStockList = () => {
+      router.push('/stocks/list');
+    };
+
+    const openOrderPopup = () => {
+      isOrderPopupOpen.value = true;
+    };
+
+    const submitOrder = async () => {
+      if (orderPrice.value && orderQuantity.value) {
+        const orderData = {
+          stock_code: currentStock.value?.ticker,
+          qty: orderQuantity.value,
+          price: orderPrice.value,
+          order_type: orderType.value,
+        };
+
+        try {
+          const response = await axiosInst.djangoAxiosInst.post('/trading/order', orderData);
+          if (response.status === 200) {
+            console.log('Order submitted successfully:', response.data);
+            console.log('Order data:', orderData);
+            orderMessage.value = response.data.msg; // 서버로부터 받은 메시지 저장
+          } else {
+            console.error('Failed to submit order:', response.data.error);
+            orderMessage.value = '주문 제출에 실패했습니다.'; // 실패 메시지 설정
+          }
+        } catch (error) {
+          console.error('Error submitting order:', error);
+          orderMessage.value = '주문 제출 중 오류가 발생했습니다.'; // 오류 메시지 설정
+        }
+      }
+    };
+
+    return {
+      currentStock,
+      startDate,
+      endDate,
+      updateChart,
+      formatDate,
+      formatCurrency,
+      formatNumber,
+      formatChange,
+      formatPercentage,
+      goToStockList,
+      goToHome,
+      isLoggedIn,
+      isOrderPopupOpen,
+      orderType,
+      orderPrice,
+      orderQuantity,
+      orderMessage,
+      openOrderPopup,
+      submitOrder,
+    };
+  },
+});
+</script>
  
  
  <style scoped>
@@ -378,4 +461,9 @@
  .additional-info h3 {
    margin-top: 0;
  }
+
+ .v-dialog .v-card {
+  background-color: #1f1f1f;
+  color: #e0e0e0;
+}
  </style>
