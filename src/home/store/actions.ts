@@ -4,20 +4,28 @@ import axiosInst from "@/utility/axiosInstance"
 import { UserInputState } from "./states"
 
 export type UserInputActions = {
-    requestquestionToFastAPI(
+    requestQuestionOpenAiToFastAPI(
         context: ActionContext<UserInputState, any>,
         payload: { data: string }): Promise<string>
-    requestAnswerToFastAPI(
+    requestQuestionToFastAPI(
+        context: ActionContext<UserInputState, any>,
+        payload: { data: string }): Promise<string>
+    requestAnswerOpenAiToFastAPI(
         context: ActionContext<UserInputState, any>): Promise<string>
+    requestQuestionLlamaToFastAPI(
+        context: ActionContext<UserInputState, any>,
+        payload: { symbol: string }): Promise<string>
+    // requestAnswerLlamaToFastAPI(
+    //     context: ActionContext<UserInputState, any>): Promise<string>
 }
 
 const actions: UserInputActions = {
-    async requestquestionToFastAPI(
+    async requestQuestionOpenAiToFastAPI(
         context: ActionContext<UserInputState, any>,
         payload: { data: string }): Promise<string> {
 
         try {
-            console.log('requestquestionToFastAPI()')
+            console.log('requestQuestionOpenAiToFastAPI()')
             const { data } = payload
             console.log("data:", data)
             const command = 7
@@ -26,21 +34,73 @@ const actions: UserInputActions = {
                 '/request-ai-command', { command,"data": [data] })
             return response.data
         } catch (error) {
-            console.log('requestquestionToFastAPI() 중 문제 발생:', error)
+            console.log('requestQuestionOpenAiToFastAPI() 중 문제 발생:', error)
             throw error
         }
     },
-    async requestAnswerToFastAPI(context: ActionContext<UserInputState, any>): Promise<string> {
+    async requestAnswerOpenAiToFastAPI(context: ActionContext<UserInputState, any>): Promise<string> {
         try {
-            console.log('requestAnswerToFastAPI()')
+            console.log('requestAnswerOpenAiToFastAPI()')
             const response = await axiosInst.fastapiAxiosInst.get('/openai-answer')
             console.log('response.data', response.data)
             return response.data
         } catch (error) {
-            console.log('requestAnswerToFastAPI() 중 문제 발생:', error)
+            console.log('requestAnswerOpenAiToFastAPI() 중 문제 발생:', error)
             throw error
         }
     },
+    async requestQuestionToFastAPI(
+        context: ActionContext<UserInputState, any>,
+        payload: { data: string }): Promise<string> {
+
+        try {
+            console.log('requestQuestionOpenAiToFastAPI()')
+            const { data } = payload
+            console.log("data:", data)
+            const command = 8
+
+            const response = await axiosInst.fastapiAxiosInst.post(
+                '/request-ai-command', { command,"data": [data] })
+            return response.data
+        } catch (error) {
+            console.log('requestQuestionOpenAiToFastAPI() 중 문제 발생:', error)
+            throw error
+        }
+    },
+
+    async requestQuestionLlamaToFastAPI(
+        context: ActionContext<UserInputState, any>,
+        payload: { symbol: string }): Promise<any> {
+
+        try {
+            console.log('requestQuestionLlamaToFastAPI()')
+            const { symbol } = payload
+            console.log("symbol:", symbol)
+
+            const response = await fetch("https://af11-223-194-230-207.ngrok-free.app/llama-result", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ symbol: symbol }),
+            }); 
+            return response;            
+        } catch (error) {
+            console.log('requestQuestionLlamaToFastAPI() 중 문제 발생:', error)
+            throw error
+        }
+    },
+    // async requestAnswerLlamaToFastAPI(context: ActionContext<UserInputState, any>): Promise<string> {
+    //     try {
+    //         console.log('requestAnswerLlamaToFastAPI()')
+    //         const response = await axiosInst.fastapiAxiosInst.post('/llama-result')
+    //         console.log('response.data', response.data)
+    //         return response.data
+    //     } catch (error) {
+    //         console.log('requestAnswerLlamaToFastAPI() 중 문제 발생:', error)
+    //         throw error
+    //     }
+    // },
 }
 
 export default actions;

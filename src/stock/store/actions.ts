@@ -20,9 +20,10 @@ export type StockActions = {
     context: ActionContext<StockState, any>, 
     ticker: string
   ): Promise<void>;
-  fetchNews(
-    context: ActionContext<StockState, any>, 
-  ): Promise<void>;
+  getFavoraite(
+    context: ActionContext<StockState, any>,
+    email: string 
+  ): Promise<any>;
 }
 
 const actions: StockActions = {
@@ -78,18 +79,21 @@ const actions: StockActions = {
       commit(SET_LOADING, false);
     }
   },
-  async fetchNews(
-    context: ActionContext<StockState, any>, 
-  ): Promise<void>{
+  async getFavoraite(
+    { commit }, // context 대신 destructuring 사용
+    email: string
+  ): Promise<any> {
     try {
-      const paper = await axiosInst.djangoAxiosInst.get<StockData>(
-        '/crawler/news-request'
+      const response = await axiosInst.djangoAxiosInst.post<StockData>(
+        '/favorite_stocks/favorite/list', { 'email': email }
       );
-      console.log('Fetched news:', paper);
-    }catch (error) {
-      console.error('Error fetching stock detail:', error);
-    } 
-  }
+
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching favorite list:', error);
+      throw error; // 오류를 다시 throw하여 호출 측에서 처리할 수 있게 합니다.
+    }
+  },
 };
 
 export default actions;

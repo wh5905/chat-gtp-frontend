@@ -11,4 +11,9 @@ const fastapiAxiosInst: AxiosInstance = axios.create({
     timeout: 10000,
 })
 
-export default { djangoAxiosInst, fastapiAxiosInst}
+const aiAxiosInst : AxiosInstance = axios.create({
+    baseURL:env.api.AI_SECOND_URL,
+    timeout: 30000,
+})
+
+export default { djangoAxiosInst, fastapiAxiosInst,aiAxiosInst}

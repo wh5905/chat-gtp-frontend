@@ -1,9 +1,11 @@
 <template>
   <v-app>
+    <!-- Navigation Drawer -->
     <v-navigation-drawer v-model="drawer" class="navi" app permanent>
       <v-container fluid class="pa-0" style="overflow: auto;">
         <v-list>
-          <v-list-item @click="toggleBookmarks" class="clickable-item">
+          <!-- 즐겨찾기 항목 -->
+          <v-list-item v-if="isEmailStored" @click="toggleBookmarks" class="clickable-item">
             <v-list-item-icon>
               <v-icon>mdi-bookmark</v-icon>
               <span>즐겨찾기</span>
@@ -12,41 +14,34 @@
               <v-icon>{{ isBookmarksOpen ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
             </v-list-item-action>
           </v-list-item>
+
           <v-expand-transition>
             <v-list v-show="isBookmarksOpen">
-              <v-list-item :to="{ name: 'stock_list' }" class="clickable-item">
-                <v-list-item-icon>
-                  <v-icon>mdi-chart-line</v-icon>
-                  <span>주식 목록</span>
-                </v-list-item-icon>
+              <v-list-item
+                v-for="(stock, index) in favoriteStockList"
+                :key="index"
+                @click="handleStockClick(stock)"
+                class="clickable-item"
+              >
+                <span>{{stock[0]}}</span>
               </v-list-item>
             </v-list>
           </v-expand-transition>
         </v-list>
-      </v-container>
 
-      <v-spacer></v-spacer>
-
-      <v-container fluid class="pa-0" style="overflow: auto;">
+        <!-- 주식 목록 항목 -->
         <v-list>
-          <v-list-item @click="toggleHistory" class="clickable-item">
+          <v-list-item :to="{ name: 'stock_list' }" class="clickable-item">
             <v-list-item-icon>
-              <v-icon>mdi-history</v-icon>
-              <span>채팅기록</span>
+              <v-icon>mdi-chart-line</v-icon>
+              <span>주식 목록</span>
             </v-list-item-icon>
-            <v-list-item-action>
-              <v-icon>{{ isHistoryOpen ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-            </v-list-item-action>
           </v-list-item>
-          <v-expand-transition>
-            <v-list v-show="isHistoryOpen">
-              <span>toggle test02</span>
-            </v-list>
-          </v-expand-transition>
         </v-list>
       </v-container>
     </v-navigation-drawer>
 
+    <!-- App Bar -->
     <v-app-bar app flat color="#212121">
       <v-app-bar-nav-icon @click="toggleDrawer"></v-app-bar-nav-icon>
       <v-toolbar-title>ChatGTP</v-toolbar-title>
@@ -69,16 +64,17 @@
       </v-btn>
     </v-app-bar>
 
+    <!-- Main Content -->
     <v-main>
       <v-container class="main-container" fluid>
         <div class="chat-container">
-          <div class="chat-box">
+          <div class="chat-box" ref="chatDisplay">
             <div 
               v-for="(message, index) in messages" 
               :key="index" 
               :class="['message', message.isUser ? 'user-message' : 'bot-message']"
             >
-              {{ message.text }}
+              <p>{{ message.text }}</p>
             </div>
           </div>
 
@@ -87,17 +83,23 @@
               <div class="input-container">
                 <v-text-field 
                   v-model="userInput" 
-                  label="Type your message" 
+                  label="원하시는 주식 종목 이름을 입력해주세요" 
                   outlined 
                   dense 
                   @keyup.enter="sendMessage" 
-                  class="message-input"></v-text-field>
+                  class="message-input"
+                ></v-text-field>
+                <v-btn class="fastSearch" @click="toggleList" color="primary">
+                  {{ isListVisible ? '리스트 숨기기' : '리스트 보기' }}
+                </v-btn>
+                <!-- 리스트 항목들을 v-for로 출력 -->
               </div>
             </v-card-text>
           </v-card>
-          
         </div>
       </v-container>
+
+      <!-- Dialog for Authentication -->
       <v-dialog v-model="showDialog" max-width="400">
         <v-card>
           <v-card-title class="headline">로그인이 필요합니다</v-card-title>
@@ -109,15 +111,37 @@
           </v-card-actions>
         </v-card>
       </v-dialog>
+
+      <v-dialog v-model="showStockDialog" max-width="400">
+        <v-card style="background-color: #333; color: aliceblue;">
+          <v-card-title>
+            <span class="headline">빠른 검색</span>
+          </v-card-title>
+          <v-card-text>
+            <v-container>
+              <v-list-item
+                v-for="(stock, index) in favoriteStockList"
+                :key="index"
+                @click="pushMessage(stock)"
+                class="clickable-item"
+              >
+                <v-list-item-content>
+                  <v-list-item-title>{{ stock[0] }}</v-list-item-title>
+                </v-list-item-content>
+              </v-list-item>
+            </v-container>
+            </v-card-text>
+        </v-card>
+      </v-dialog>
+
     </v-main>
   </v-app>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed } from 'vue';
+import { defineComponent, ref, onMounted, computed, nextTick } from 'vue';
 import router from '@/router';
 import { useStore } from 'vuex';
-import { timeout } from 'd3';
 
 export default defineComponent({
   name: 'HomeView',
@@ -125,66 +149,72 @@ export default defineComponent({
     const store = useStore();
     const userInput = ref('');
     const messages = ref<Array<{ text: string; isUser: boolean }>>([]);
-    const drawer = ref(true);
+    const drawer = ref(false);
     const isBookmarksOpen = ref(false);
-    const isHistoryOpen = ref(false);
     const showDialog = ref(false);
-    const aianswer = ref("")
+    const showStockDialog = ref(false);
     const isKakaoAuthenticated = ref(false);
     const isLoggedIn = ref(false);
     const isGoogleAuthenticated = ref(false);
     const isNaverAuthenticated = ref(false);
+    const favoriteStockList = ref<string[][]>([]) // 각 항목을 개별화된 리스트로 설정
+    const isEmailStored = ref(false);
 
-    
     const isAuthenticated = computed(() => {
       return (
-        isKakaoAuthenticated.value || 
-        isLoggedIn.value || 
-        isGoogleAuthenticated.value || 
+        isKakaoAuthenticated.value ||
+        isLoggedIn.value ||
+        isGoogleAuthenticated.value ||
         isNaverAuthenticated.value
       );
     });
 
-    const isNotAuthenticated = computed(() => {
-      return (
-        !isKakaoAuthenticated.value && 
-        !isLoggedIn.value && 
-        !isGoogleAuthenticated.value && 
-        !isNaverAuthenticated.value
-      );
-    });
-    const sleep = (ms:number) => new Promise((resolve) => setTimeout(resolve, ms));
+    const isNotAuthenticated = computed(() => !isAuthenticated.value);
 
-      const sendMessage = async () => {
-        if (isAuthenticated.value) {
-          if (userInput.value.trim()) {
-            const messageToSend = userInput.value;
-            userInput.value = '';
+    const sendMessage = async () => {
+      if (isAuthenticated.value) {
+        if (userInput.value.trim()) {
+          const messageToSend = userInput.value;
+          const fullText = `${messageToSend} 주가 예측해줘`;
+          const stockticker = await store.dispatch('boardModule/requestSearchStockNameToDjango', { 'stockName': messageToSend });
+          
+          if (stockticker !== null) {
+            messages.value.push({ text: fullText, isUser: true });
+            userInput.value = '';  // 사용자 입력 초기화
             
-            messages.value.push({ text: messageToSend, isUser: true });
-            
-            await store.dispatch('userModule/requestquestionToFastAPI', { data: messageToSend });
+            // Add a placeholder message for bot response
+            messages.value.push({ text: '', isUser: false }) - 1;
 
-            let response = null;
-            for (let i = 0; i < 10; i++) {
-              await sleep(2000);
-              response = await store.dispatch('userModule/requestAnswerToFastAPI');
-              
-              if (response && response.answer) {
-                const aianswer = response.answer;
-                messages.value.push({ text: aianswer, isUser: false });
-                break;
+            const botResponse = await store.dispatch('userModule/requestQuestionToFastAPI', { symbol: stockticker });
+            const reader = botResponse.body.getReader();
+            const decoder = new TextDecoder();
+            let aianswer = "";
+            let done = false;
+
+            // 스트림을 읽고 데이터를 처리합니다
+            while (!done) {
+              const { done: streamDone, value } = await reader.read();
+              done = streamDone;
+
+              // value가 Uint8Array인 경우 먼저 문자열로 변환합니다.
+              const decodedValue = decoder.decode(value, { stream: true });
+              aianswer += decodedValue;
+
+              // 채팅 박스를 아래로 스크롤
+              await nextTick();
+              const chatDisplay = document.querySelector('.chat-box');
+              if (chatDisplay) {
+                chatDisplay.scrollTop = chatDisplay.scrollHeight;
               }
             }
-
-            if (!response || !response.answer) {
-              messages.value.push({ text: "No response from AI after multiple attempts.", isUser: false });
-            }
+          } else {
+            userInput.value = '';  // 유효하지 않은 종목명 또는 티커일 경우, 입력 초기화
           }
-        } else {
-          showDialog.value = true;
         }
-      };
+      } else {
+        showDialog.value = true;
+      }
+    };
 
     const closeDialog = () => {
       showDialog.value = false;
@@ -198,10 +228,57 @@ export default defineComponent({
       isBookmarksOpen.value = !isBookmarksOpen.value;
     };
 
-    const toggleHistory = () => {
-      isHistoryOpen.value = !isHistoryOpen.value;
+    const fetchFavoriteList = async () => {
+      const email = sessionStorage.getItem('email');
+      if (email) {
+        const list = await store.dispatch('stockModule/getFavoraite', email);
+        if (list){console.log('Fetched favorite list:', list.stocks); // 데이터 확인
+        favoriteStockList.value = list.stocks; // 타입 단언 추가
+      }
+    }
     };
 
+    onMounted(async () => {
+      const email = sessionStorage.getItem('email');
+
+      if (email) {
+        try {
+          await fetchFavoriteList(); // 이메일이 있을 때만 리스트를 비동기적으로 불러오기
+          isEmailStored.value = true; // 이메일이 있을 때만 표시
+        } catch (error) {
+          console.error('Error fetching favorite list:', error);
+          isEmailStored.value = false; // 데이터 로드 중 오류 발생 시 이메일이 없는 것으로 표시
+        }
+      } else {
+        isEmailStored.value = false; // 이메일이 없을 때 이메일이 없는 것으로 표시
+      }
+
+      const generalLogin = sessionStorage.getItem('generalLogin');
+      if (generalLogin) {
+        isLoggedIn.value = true;
+      }
+      const userToken = sessionStorage.getItem('userToken');
+      if (userToken) {
+        isKakaoAuthenticated.value = true;
+      }
+      const googleUserToken = sessionStorage.getItem('googleUserToken');
+      if (googleUserToken) {
+        isGoogleAuthenticated.value = true;
+      }
+      const naverUserToken = sessionStorage.getItem('naverUserToken');
+      if (naverUserToken) {
+        isNaverAuthenticated.value = true;
+      }
+    });
+    const isListVisible = ref(false);
+
+    const toggleList = () => {
+      if(!isAuthenticated.value){
+        showDialog.value = true}
+      else{
+        showStockDialog.value =true
+      }
+    };
     const signIn = () => {
       router.push('/account/login');
     };
@@ -214,52 +291,40 @@ export default defineComponent({
       if (isLoggedIn.value) {
         await store.commit('accountModule/REQUEST_IS_ACCOUNT_TO_DJANGO', false);
         sessionStorage.removeItem('generalLogin');
-        sessionStorage.removeItem('email')
+        sessionStorage.removeItem('email');
         isLoggedIn.value = false;
       }
       if (isKakaoAuthenticated.value) {
         await store.dispatch('authenticationModule/requestLogoutToDjango');
         sessionStorage.removeItem('userToken');
-        sessionStorage.removeItem('email')
+        sessionStorage.removeItem('email');
         isKakaoAuthenticated.value = false;
       }
       if (isGoogleAuthenticated.value) {
         await store.dispatch('GoogleAuthenticationModule/requestLogoutToDjango');
         sessionStorage.removeItem('googleUserToken');
-        sessionStorage.removeItem('email')
+        sessionStorage.removeItem('email');
         isGoogleAuthenticated.value = false;
       }
       if (isNaverAuthenticated.value) {
         await store.dispatch('NaverAuthenticationModule/requestLogoutToDjango');
         sessionStorage.removeItem('naverUserToken');
-        sessionStorage.removeItem('email')
+        sessionStorage.removeItem('email');
         isNaverAuthenticated.value = false;
       }
       router.push('/');
     };
 
-    onMounted(async () => {
-      const generalLogin = sessionStorage.getItem('generalLogin');
-      if (generalLogin) {
-        console.log("You already have a generalLogin!");
-        isLoggedIn.value = true;
-      }
-      const userToken = sessionStorage.getItem('userToken');
-      if (userToken) {
-        console.log("You already have a userToken!");
-        isKakaoAuthenticated.value = true;
-      }
-      const googleUserToken = sessionStorage.getItem('googleUserToken');
-      if (googleUserToken) {
-        console.log("You already have a googleUserToken!");
-        isGoogleAuthenticated.value = true;
-      }
-      const naverUserToken = sessionStorage.getItem('naverUserToken');
-      if (naverUserToken) {
-        console.log("You already have a naverUserToken!");
-        isNaverAuthenticated.value = true;
-      }
-    });
+    const handleStockClick = (stock: string[]) => {
+      console.log('Clicked stock:', stock);
+      router.push(`/stock/${stock[1]}`)
+    };
+
+    const pushMessage = (stock: string[]) =>{
+      userInput.value = stock[0];
+      sendMessage();
+      showStockDialog.value = false;
+    }
 
     return {
       userInput,
@@ -268,9 +333,7 @@ export default defineComponent({
       drawer,
       toggleDrawer,
       isBookmarksOpen,
-      isHistoryOpen,
       toggleBookmarks,
-      toggleHistory,
       isAuthenticated,
       isNotAuthenticated,
       signIn,
@@ -278,7 +341,13 @@ export default defineComponent({
       signOut,
       showDialog,
       closeDialog,
-      aianswer,
+      favoriteStockList,
+      isEmailStored,
+      handleStockClick,
+      isListVisible,
+      toggleList,
+      showStockDialog,
+      pushMessage,
     };
   }
 });
@@ -294,7 +363,9 @@ export default defineComponent({
   height: calc(100vh - 64px);
   padding: 0;
 }
-
+.fastSearch{
+  justify-items: end;
+}
 .chat-container {
   background-color: #212121;
   display: flex;
@@ -309,8 +380,8 @@ export default defineComponent({
   background-color: #212121;
   border-radius: 8px;
   padding: 1rem;
-  width: 150vh;
-  height: 100vh;
+  width: 120vh; /* 가로 길이 조정 */
+  height: 70vh; /* 높이 조정 (필요하면) */
   overflow-y: auto;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-bottom: 1rem;
@@ -351,20 +422,21 @@ export default defineComponent({
 .chat-input-card {
   background-color: #212121;
   color: #ffffff;
-  width: 150vh;
+  width: 120vh; /* 가로 길이 조정 */
   margin: 0 auto;
 }
 
 .input-container {
   display: flex;
   align-items: center;
-  background-color: #2F2F2F;
-  padding: 0.5rem;
+  width: 100vh;
 }
 
 .message-input {
   flex: 1;
-  margin-right: 0.5rem;
+  margin-right: 10vh;
+  margin-left: 10vh;
+  height: 8vh;
 }
 
 .send-button {
@@ -385,5 +457,9 @@ export default defineComponent({
 
 .clear-button {
   margin-left: 1rem;
+}
+
+.clickable-item {
+  cursor: pointer; /* 클릭 가능한 항목 스타일 */
 }
 </style>
