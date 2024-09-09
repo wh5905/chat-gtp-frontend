@@ -225,17 +225,21 @@ export default defineComponent({
     };
 
     const toggleBookmarks = () => {
+      if (favoriteStockList.value.length >0)
       isBookmarksOpen.value = !isBookmarksOpen.value;
+      else{
+      alert("즐겨찾기를 먼저 등록해주세요")
+      }
     };
 
     const fetchFavoriteList = async () => {
       const email = sessionStorage.getItem('email');
       if (email) {
         const list = await store.dispatch('stockModule/getFavoraite', email);
-        if (list){console.log('Fetched favorite list:', list.stocks); // 데이터 확인
+        console.log('Fetched favorite list:', list.stocks); // 데이터 확인
         favoriteStockList.value = list.stocks; // 타입 단언 추가
+        console.log('Fetched favorite list:', favoriteStockList.value.length); // 데이터 확인
       }
-    }
     };
 
     onMounted(async () => {
@@ -275,8 +279,11 @@ export default defineComponent({
     const toggleList = () => {
       if(!isAuthenticated.value){
         showDialog.value = true}
-      else{
+      if (favoriteStockList.value.length > 0){
         showStockDialog.value =true
+      }
+      else{
+        alert("즐겨찾기를 등록해주세요")
       }
     };
     const signIn = () => {
