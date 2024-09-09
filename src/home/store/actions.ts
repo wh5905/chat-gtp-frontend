@@ -15,6 +15,9 @@ export type UserInputActions = {
     requestQuestionLlamaToFastAPI(
         context: ActionContext<UserInputState, any>,
         payload: { symbol: string }): Promise<string>
+    requestNewsDataToFastAPI(
+        context: ActionContext<UserInputState, any>,
+        payload: { symbol: string }): Promise<any> 
     // requestAnswerLlamaToFastAPI(
     //     context: ActionContext<UserInputState, any>): Promise<string>
 }
@@ -67,7 +70,6 @@ const actions: UserInputActions = {
             throw error
         }
     },
-
     async requestQuestionLlamaToFastAPI(
         context: ActionContext<UserInputState, any>,
         payload: { symbol: string }): Promise<any> {
@@ -77,16 +79,40 @@ const actions: UserInputActions = {
             const { symbol } = payload
             console.log("symbol:", symbol)
 
-            const response = await fetch("https://af11-223-194-230-207.ngrok-free.app/llama-result", {
+            const response = await fetch("https://onebottlekick.loca.lt/predict-stock-price", {
                 method: "POST",
                 headers: {
                   "Content-Type": "application/json",
+                  "bypass-tunnel-reminder": "true"
                 },
                 body: JSON.stringify({ symbol: symbol }),
             }); 
             return response;            
         } catch (error) {
             console.log('requestQuestionLlamaToFastAPI() 중 문제 발생:', error)
+            throw error
+        }
+    },
+    async requestNewsDataToFastAPI(
+        context: ActionContext<UserInputState, any>,
+        payload: { symbol: string }): Promise<any> {
+
+        try {
+            console.log('requestNewsDataToFastAPI()')
+            const { symbol } = payload
+            console.log("symbol:", symbol)
+
+            const response = await fetch("https://onebottlekick.loca.lt/news", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "bypass-tunnel-reminder": "true"
+                },
+                body: JSON.stringify({ symbol: symbol }),
+            }); 
+            return response.json();            
+        } catch (error) {
+            console.log('requestNewsDataToFastAPI() 중 문제 발생:', error)
             throw error
         }
     },
