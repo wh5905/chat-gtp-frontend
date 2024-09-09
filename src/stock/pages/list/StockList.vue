@@ -3,6 +3,9 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
       <v-app-bar app color="#121212" dark>
         <v-toolbar-title class="mr-4">주식 목록</v-toolbar-title>
+        <v-btn icon @click="goToTrading">
+          <v-icon>mdi-clipboard-list-outline</v-icon>
+        </v-btn>
         <v-btn icon @click="goToHome">
           <v-icon>mdi-home</v-icon>
         </v-btn>
@@ -230,6 +233,9 @@ export default {
     },
     goToHome() {
       this.$router.push("/");
+    },
+    goToTrading() {
+      this.$router.push("/stock/trade");
     },
     checkLoginStatus() {
       const email = sessionStorage.getItem('email');
