@@ -60,6 +60,7 @@
                 }
                 console.log('전송한 데이터:', accountInfo)
                 const naverAccessToken = sessionStorage.getItem("naverAccessToken");
+                sessionStorage.setItem('email',this.email)
                 await this.requestCreateNewAccountToDjango(accountInfo)
                 await this.requestAddRedisAccessTokenToDjango({ email:this.email, naverAccessToken });
                 router.push('/')
