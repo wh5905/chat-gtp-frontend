@@ -70,26 +70,29 @@
         <v-row class="fill-height">
           <!-- 첫 번째 1/3 구역 -->
           <v-col cols="2">
-      <div class="section-1">
-        <p class="yellow-text">즐겨찾기</p>
-        <div v-for="(stock, index) in visibleStocks" :key="index" class="favorite-stock">
+        <div class="section-1">
           <v-row>
-            <v-col cols="6">
-              <h3 class="white-text">{{ stock.name }}</h3>
-            </v-col>
-            <v-col cols="6">
-              <p class="white-text">{{ formatCurrency(stock.close) }}</p>
-              <p :class="{ 'up': stock.priceChange > 0, 'down': stock.priceChange < 0 }">
-                {{ formatCurrency(stock.priceChange) }} ({{ formatPercentage(stock.percentageChange) }})
-              </p>
-            </v-col>
-          </v-row>
+          <v-icon color="white">mdi-bookmark</v-icon>
+          <p class="yellow-text">즐겨찾기</p>
+        </v-row>
+          <div v-for="(stock, index) in visibleStocks" :key="index" class="favorite-stock" @click="handleFavoriteStockClick(stock.ticker)">
+            <v-row>
+              <v-col cols="6">
+                <h3 class="white-text">{{ stock.name }}</h3>
+              </v-col>
+              <v-col cols="6">
+                <p class="white-text">{{ formatCurrency(stock.close) }}</p>
+                <p :class="{ 'up': stock.priceChange > 0, 'down': stock.priceChange < 0, }">
+                  {{ formatCurrency(stock.priceChange) }} ({{ formatPercentage(stock.percentageChange) }})
+                </p>
+              </v-col>
+            </v-row>
+          </div>
+          <v-btn icon @click="toggleShowAll" style="width: 25px; height: 25px; min-width: 24px;">
+            <v-icon style="font-size: 16px;">{{ showAll ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
+          </v-btn>
         </div>
-        <v-btn icon @click="toggleShowAll" style="width: 30px; height: 30px; min-width: 24px;">
-          <v-icon style="font-size: 16px;">{{ showAll ? 'mdi-chevron-up' : 'mdi-chevron-down' }}</v-icon>
-        </v-btn>
-      </div>
-    </v-col>
+      </v-col>
 
           <!-- 두 번째 1/3 구역 (채팅) -->
           <v-col cols="6" class="d-flex flex-column fill-height">
@@ -410,6 +413,10 @@ export default defineComponent({
       console.log('Clicked stock:', stock);
       router.push(`/stock/${stock[1]}`)
     };
+    const handleFavoriteStockClick = (ticker: string[]) => {
+        console.log('Clicked stock:', ticker);
+        router.push(`/stock/${ticker}`)
+      };
 
     const pushMessage = (stock: string[]) =>{
       userInput.value = stock[0];
@@ -425,6 +432,7 @@ export default defineComponent({
           const formattedStocks = stocks.map((stock: any) => ({
             name: stock.name, // 이름 사용
             close: stock.close || 0,
+            ticker: stock.ticker || '',
             priceChange: stock.priceChange || 0,
             percentageChange: stock.percentageChange || 0
           }));
@@ -475,6 +483,7 @@ export default defineComponent({
       favoriteStockList,
       isEmailStored,
       handleStockClick,
+      handleFavoriteStockClick,
       isListVisible,
       toggleList,
       showStockDialog,
@@ -578,7 +587,7 @@ export default defineComponent({
 }
 
 .yellow-text {
-  color: #fbffc4;
+  color: #ffffff;
   font-weight: bold;
 }
 
