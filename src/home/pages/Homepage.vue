@@ -126,32 +126,32 @@
           </v-col>
 
         <v-col cols="4">
-          <div class="section-3" style="max-height: 700px; overflow-y: auto;">
-            <p>뉴스 공간</p>
-            <!-- newList.value에 접근, 데이터가 있는 경우만 렌더링 -->
+          <div class="section-3 news-list">
+            <!-- Check if newList has data before rendering -->
             <div v-if="newList && newList.length > 0">
-              <div v-for="item in newList" :key="item" class="news-item">
+              <div v-for="item in newList" :key="item.headline" class="news-item">
                 <v-card class="mb-3">
                   <v-row no-gutters>
-                    <!-- 이미지가 있는 경우 이미지 표시 -->
+                    <!-- Render image if available -->
                     <v-col v-if="item.img" cols="4">
                       <v-img :src="item.img" :alt="item.headline" height="100px"></v-img>
                     </v-col>
-                    <!-- 뉴스 텍스트 정보 -->
+                    <!-- News text info -->
                     <v-col cols="8">
                       <v-card-title>{{ item.headline }}</v-card-title>
-                      <v-card-subtitle>{{ item.date }}</v-card-subtitle>
+                      <v-card-subtitle>{{ item.date.Date }}</v-card-subtitle>
                       <v-card-text>{{ item.summary }}</v-card-text>
                       <v-card-actions>
-                        <v-btn text color="primary" :href="item.url" target="_blank">기사 보기</v-btn>
+                        <v-btn text color="secondary" :href="item.url" target="_blank">기사 보기</v-btn>
                       </v-card-actions>
                     </v-col>
                   </v-row>
                 </v-card>
               </div>
             </div>
-  </div>
-</v-col>
+          </div>
+
+        </v-col>
 
         </v-row>
       </v-container>
@@ -231,7 +231,6 @@ export default defineComponent({
     });
 
     const isNotAuthenticated = computed(() => !isAuthenticated.value);
-
     const sendMessage = async () => {
       if (isAuthenticated.value) {
         if (userInput.value.trim()) {
@@ -509,10 +508,6 @@ export default defineComponent({
 
 .chat-container {
   background-color: #212121;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  height: 100%;
   padding: 1rem;
 }
 
@@ -520,10 +515,8 @@ export default defineComponent({
   background-color: #212121;
   border-radius: 8px;
   padding: 1rem;
-  width: 100%;
   height: 70vh;
   overflow-y: auto;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   margin-bottom: 1rem;
 }
 
@@ -531,20 +524,16 @@ export default defineComponent({
   margin-bottom: 1rem;
   padding: 0.5rem;
   border-radius: 8px;
-  max-width: 100%;
-  word-wrap: break-word;
 }
 
 .user-message {
   background-color: #212121;
-  margin-left: auto;
   text-align: right;
   color: #ffffff;
 }
 
 .bot-message {
   background-color: #212121;
-  margin-right: auto;
   text-align: left;
   color: #ffffff;
 }
@@ -563,11 +552,10 @@ export default defineComponent({
   flex: 1;
 }
 
-.fastSearch {
-  justify-items: end;
-}
-.favorite-stock {
-  margin-bottom: 10px;
+.toggle-icon-btn {
+  width: 30px;
+  height: 30px;
+  min-width: 24px;
 }
 
 .favorite-stock h3 {
@@ -582,17 +570,46 @@ export default defineComponent({
 }
 
 .up {
-  color: #f44336; /* 상승 텍스트 색상 */
+  color: #f44336;
 }
 
 .down {
-  color: #401aff; /* 하락 텍스트 색상 */
+  color: #401aff;
 }
+
 .yellow-text {
   color: #fbffc4;
   font-weight: bold;
 }
+
 .white-text {
   color: #ffffff;
+}
+.news-item{
+  background-color: #212121;
+}
+.mb-3{
+  background-color: #212121;
+  color: white;
+}
+.news-list {
+  max-height: 700px;
+  overflow-y: auto;
+  scroll-behavior: smooth;  /* Enables smooth scrolling */
+  padding-right: 10px;  /* Adds space to prevent scrollbar overlap */
+}
+
+/* Optional: Customize scrollbar for a cleaner look */
+.news-list::-webkit-scrollbar {
+  width: 8px;  /* Width of the scrollbar */
+}
+
+.news-list::-webkit-scrollbar-thumb {
+  background-color: #666;  /* Thumb color */
+  border-radius: 4px;  /* Rounded scrollbar */
+}
+
+.news-list::-webkit-scrollbar-track {
+  background-color: #212121;  /* Track color */
 }
 </style>
