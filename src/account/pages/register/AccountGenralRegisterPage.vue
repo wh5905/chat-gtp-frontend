@@ -6,7 +6,7 @@
           <v-icon>mdi-home</v-icon>
         </v-btn>
     </v-app-bar>
-
+    <div class="main">
     <v-container class="register-container" fill-height>
         <v-row align="center" justify="center">
             <v-col cols="12" md="8" lg="6">
@@ -25,8 +25,8 @@
                                             :rules="emailRules"
                                             :error-messages="emailErrorMessages"/>
                                 </v-col>
-                                <v-col cols="1">
-                                    <v-btn color="primary"
+                                <v-col cols="2">
+                                    <v-btn color="#212121"
                                             @click="checkEmailDuplication"
                                             class="check-button"
                                             small>
@@ -43,8 +43,8 @@
                                             :rules="NicknameRules"
                                             :error-messages="nicknameErrorMessages"/>
                                 </v-col>
-                                <v-col cols="1">
-                                    <v-btn color="primary"
+                                <v-col cols="2">
+                                    <v-btn color="#212121"
                                             @click="checkNicknameDuplication"
                                             class="check-button"
                                             small>
@@ -64,7 +64,7 @@
                     </v-card-text>
                     <v-card-actions>
                         <v-spacer></v-spacer>
-                        <v-btn color="primary" 
+                        <v-btn color="#212121" 
                                 @click="submitForm" 
                                 :disabled="!isValidForSubmission">
                             신청하기
@@ -74,6 +74,7 @@
             </v-col>
         </v-row>
         </v-container>
+    </div>
 </template>
 
 <script>
@@ -192,15 +193,227 @@ export default {
 </script>
 
 <style scoped>
-.check {
-  transform: scale(1.1); /* 체크박스 크기 증가 */
-  margin-right: 20px; /* 체크박스 사이 간격 */
+/* Global Styles */
+body {
+  font-family: 'Roboto', sans-serif;
+  background-color: #f4f4f4;
+  margin: 0;
+  padding: 0;
 }
-.mt-3 {
-  margin-top: 20px; /* 필요한 만큼 간격 조정 */
-}
-check-button{
-    justify-items:right;
 
+/* Main Layout */
+.main {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.v-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* AppBar */
+.v-app-bar {
+  background-color: #212121;
+  color: white;
+}
+
+.v-toolbar-title {
+  font-weight: bold;
+  font-size: 1.5rem;
+}
+
+.v-btn {
+  color: white;
+}
+
+/* Forms */
+.v-form {
+  margin-top: 10px;
+}
+
+.v-text-field label {
+  font-size: 0.9rem;
+  color: #1976d2;
+}
+
+.v-text-field input {
+  font-size: 1rem;
+  color: #424242;
+}
+
+.v-text-field {
+  margin-bottom: 15px;
+}
+
+.v-btn.small {
+  font-size: 0.75rem;
+  padding: 5px 10px;
+  background-color: #212121;
+  color: white;
+}
+
+.v-btn.small:hover {
+  background-color: #212121;
+}
+
+/* Headline and Actions */
+.headline {
+  font-weight: bold;
+  font-size: 1.25rem;
+  color: #424242;
+}
+
+.v-card-actions {
+  padding-top: 0;
+}
+
+.v-btn.primary {
+  background-color: #212121;
+  color: white;
+}
+
+.v-btn.primary:disabled {
+  background-color: #b0bec5;
+}
+
+/* Email & Nickname Duplication Button */
+.check-button {
+  width: 100%;
+  background-color: #ff8f00;
+  color: white;
+}
+
+.check-button:hover {
+  background-color: #ff6f00;
+}
+
+/* Message Section (for future implementation) */
+.chat-container {
+  background-color: #f5f5f5;
+  padding: 1rem;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.chat-box {
+  background-color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  height: 70vh;
+  overflow-y: auto;
+  margin-bottom: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.message {
+  padding: 0.75rem;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  max-width: 75%;
+  word-wrap: break-word;
+}
+
+.user-message {
+  background-color: #1976d2;
+  color: white;
+  margin-left: auto;
+  text-align: right;
+}
+
+.bot-message {
+  background-color: #e0e0e0;
+  color: #424242;
+  margin-right: auto;
+  text-align: left;
+}
+
+.chat-input-card {
+  background-color: #f5f5f5;
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.input-container {
+  display: flex;
+  align-items: center;
+}
+
+.message-input {
+  flex: 1;
+  background-color: #fff;
+  color: #424242;
+  border-radius: 8px;
+}
+
+.fastSearch {
+  background-color: #1976d2;
+  color: white;
+}
+
+/* Hover and Transition Effects */
+.v-btn:hover {
+  background-color: #1565c0;
+}
+
+.clickable-item:hover {
+  background-color: #f1f1f1;
+}
+
+/* Favorite Stock Section */
+.favorite-stock {
+  background-color: #fff;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.favorite-stock h3 {
+  font-size: 1rem;
+  color: #424242;
+  margin-bottom: 5px;
+}
+
+.favorite-stock p {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.up {
+  color: #d32f2f;
+}
+
+.down {
+  color: #1976d2;
+}
+
+/* Colors */
+.yellow-text {
+  color: #fdd835;
+}
+
+.white-text {
+  color: white;
+}
+
+/* Drawer */
+.v-navigation-drawer {
+  background-color: #424242;
+  color: white;
+}
+
+.v-navigation-drawer a {
+  color: white;
+}
+
+.clickable-item {
+  cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 </style>
+
